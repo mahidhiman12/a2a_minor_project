@@ -1,0 +1,11 @@
+# core (everything needed to run with the free rules NLU)
+fastapi>=0.110
+uvicorn>=0.29
+httpx>=0.27
+pydantic>=2.6
+langgraph>=0.2
+# testing
+pytest>=8
+# optional: Google ADK host agent (adk_host/). Uses Gemini free tier or Ollama via LiteLLM
+google-adk>=1.0
+litellm>=1.40

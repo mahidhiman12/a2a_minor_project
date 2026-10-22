@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nagrik Sahayak · A2A Grievance System</title>
+<style>
+:root{
+  --bg:#f4f2ee; --panel:#ffffff; --ink:#1b2430; --muted:#6b7280; --line:#e4e0d8;
+  --brand:#0f5c5c; --brand-soft:#e3f0ee; --accent:#d9822b; --user:#0f5c5c; --bot:#f7f5f1;
+  --ok:#2f855a; --warn:#b7791f; --bad:#c53030; --crit:#9b2c2c;
+  --water:#2b6cb0; --electricity:#b7791f; --roads:#6b4f3a; --orch:#553c9a; --conc:#0f5c5c;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);height:100vh;display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:14px;padding:12px 20px;background:var(--brand);color:#fff}
+header .logo{width:34px;height:34px;border-radius:9px;background:#fff2;display:grid;place-items:center;font-weight:700}
+header h1{font-size:17px;margin:0;font-weight:650;letter-spacing:.2px}
+header small{opacity:.8;display:block;font-size:12px}
+header .sp{flex:1}
+header select{background:#fff1;color:#fff;border:1px solid #fff5;border-radius:8px;padding:6px 8px;font:inherit;font-size:13px}
+header select option{color:#000}
+main{flex:1;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:16px;padding:16px;min-height:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.card h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0;padding:12px 16px;border-bottom:1px solid var(--line);font-weight:600}
+#chat{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:88%;padding:10px 14px;border-radius:14px;white-space:pre-wrap;word-wrap:break-word}
+.msg.user{align-self:flex-end;background:var(--user);color:#fff;border-bottom-right-radius:4px}
+.msg.bot{align-self:flex-start;background:var(--bot);border:1px solid var(--line);border-bottom-left-radius:4px}
+.msg.bot code{font-family:var(--mono);font-size:12.5px;background:#fff;border:1px solid var(--line);padding:0 4px;border-radius:4px}
+.msg .meta{font-size:11.5px;color:var(--muted);margin-top:6px}
+.typing{color:var(--muted);font-style:italic;font-size:13px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;padding:0 16px 10px}
+.chip{font-size:12.5px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 10px;cursor:pointer;color:var(--ink)}
+.chip:hover{border-color:var(--brand);color:var(--brand)}
+form{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--line)}
+form input{flex:1;padding:11px 14px;border:1px solid var(--line);border-radius:10px;font:inherit;outline:none}
+form input:focus{border-color:var(--brand)}
+form button{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:0 18px;font:inherit;font-weight:600;cursor:pointer}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:none;border:0;padding:11px;font:inherit;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button.on{color:var(--brand);border-bottom-color:var(--brand)}
+.pane{flex:1;overflow:auto;padding:14px 16px;display:none}
+.pane.on{display:block}
+.empty{color:var(--muted);font-size:14px;padding:20px 4px}
+/* flow diagram */
+.flow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:center;margin-bottom:14px}
+.node{border:1.5px solid var(--line);border-radius:10px;padding:8px;text-align:center;font-size:12px;font-weight:600;background:#fff;transition:.25s}
+.node.lit{box-shadow:0 0 0 3px #d9822b44;border-color:var(--accent)}
+.node.done{border-color:var(--ok);background:#f0faf4}
+.node.idle{opacity:.45}
+.depts{display:flex;flex-direction:column;gap:6px}
+/* trail */
+.ev{display:grid;grid-template-columns:70px 1fr;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.ev .t{color:var(--muted);font-family:var(--mono);font-size:11.5px;padding-top:2px}
+.ev .who{font-weight:650}
+.ev .what{font-family:var(--mono);font-size:12px;background:#f3f1ec;border-radius:5px;padding:1px 6px;margin-left:6px}
+.ev details{margin-top:4px}
+.ev summary{cursor:pointer;color:var(--muted);font-size:12px}
+.ev pre{font-family:var(--mono);font-size:11.5px;background:#1b2430;color:#e7ecef;padding:10px;border-radius:8px;overflow:auto;max-height:320px}
+.st{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;margin-left:6px;text-transform:uppercase;letter-spacing:.04em}
+.st.submitted{background:#edf2f7;color:#4a5568}.st.working{background:#fefcbf;color:#975a16}
+.st.completed{background:#c6f6d5;color:#22543d}.st.failed,.st.rejected{background:#fed7d7;color:#9b2c2c}
+/* unified */
+.uni{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px;background:#fcfbf9}
+.uni h3{margin:0 0 6px;font-size:15px}
+.tk{display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:13px}
+.dot{width:10px;height:10px;border-radius:50%}
+.prio{font-size:11px;font-weight:700;padding:1px 7px;border-radius:6px;background:#edf2f7}
+.prio.CRITICAL{background:#fed7d7;color:var(--crit)}.prio.HIGH{background:#feebc8;color:#9c4221}
+.agent{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+.agent h3{margin:0;font-size:14.5px;display:flex;justify-content:space-between;gap:8px}
+.agent a{font-size:12px;color:var(--brand)}
+.agent .u{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.skill{display:inline-block;font-family:var(--mono);font-size:11px;background:var(--brand-soft);color:var(--brand);padding:2px 7px;border-radius:6px;margin:3px 3px 0 0}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line)}
+td a{color:var(--brand);cursor:pointer;font-family:var(--mono);font-size:12px}
+@media (max-width:900px){main{grid-template-columns:1fr;grid-auto-rows:minmax(420px,auto)}body{height:auto}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">A2A</div>
+  <div><h1>Nagrik Sahayak — Citizen Grievance Concierge</h1>
+  <small>Autonomous multi-department resolution over the Agent2Agent protocol</small></div>
+  <div class="sp"></div>
+  <label style="font-size:12px;opacity:.85">NLU engine&nbsp;
+  <select id="mode">
+    <option value="rules">Rules (no API key)</option>
+    <option value="ollama">Ollama (local LLM)</option>
+    <option value="gemini">Gemini (free key)</option>
+  </select></label>
+</header>
+<main>
+  <section class="card">
+    <h2>Talk to the Concierge agent</h2>
+    <div id="chat"></div>
+    <div class="chips" id="chips"></div>
+    <form id="f"><input id="in" autocomplete="off" placeholder="Describe the problem and the locality…"><button>Send</button></form>
+  </section>
+  <section class="card">
+    <div class="tabs">
+      <button data-t="flow" class="on">Live A2A trail</button>
+      <button data-t="agents">Agent Cards</button>
+      <button data-t="list">All complaints</button>
+    </div>
+    <div class="pane on" id="p-flow"><div class="empty">Submit a complaint to see agents discover each other, exchange JSON-RPC messages, and move tasks through <b>submitted → working → completed</b>.</div></div>
+    <div class="pane" id="p-agents"></div>
+    <div class="pane" id="p-list"></div>
+  </section>
+</main>
+<script>
+const $=s=>document.querySelector(s);
+const SID='s-'+Math.random().toString(36).slice(2,9);
+const COLORS={water:'var(--water)',electricity:'var(--electricity)',roads:'var(--roads)',sanitation:'#2f855a'};
+const PORTS={8101:'Water',8102:'Electricity',8103:'Roads',8104:'Sanitation'};
+const SAMPLES=[
+ "The road repair work near Laxmi Nagar metro station has broken the water pipe and water is flowing everywhere",
+ "MCD dug up the road in Shastri Park and cut the electricity cable, no power since morning",
+ "Wire is sparking on the pole near the school in Karol Bagh",
+ "Rohini me bijli nahi hai subah se",
+ "There is a huge pothole on the main road",
+];
+SAMPLES.forEach(s=>{const c=document.createElement('button');c.className='chip';c.textContent=s.length>48?s.slice(0,46)+'…':s;c.title=s;c.onclick=()=>send(s);$('#chips').appendChild(c)});
+
+fetch('api/config').then(r=>r.json()).then(c=>{$('#mode').value=c.nlu_mode in {rules:1,ollama:1,gemini:1}?c.nlu_mode:'rules'});
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==='p-'+b.dataset.t));
+  if(b.dataset.t==='agents')loadAgents(); if(b.dataset.t==='list')loadList();
+});
+
+function md(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))
+  .replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/`(.+?)`/g,'<code>$1</code>');}
+function add(role,html,meta){const d=document.createElement('div');d.className='msg '+role;d.innerHTML=html+(meta?`<div class="meta">${meta}</div>`:'');$('#chat').appendChild(d);$('#chat').scrollTop=1e9;return d;}
+add('bot',md("Namaste! I'm the Citizen Concierge. Describe any **water, electricity or road** problem in plain English or Hinglish — I'll work out which departments are involved, register it with each of them, and give you one combined status."));
+
+$('#f').onsubmit=e=>{e.preventDefault();const v=$('#in').value.trim();if(v){send(v);$('#in').value='';}};
+async function send(text){
+  add('user',md(text));
+  const t=add('bot','<span class="typing">Concierge is understanding your complaint and contacting the agents…</span>');
+  try{
+    const r=await fetch('api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,session_id:SID,mode:$('#mode').value})});
+    const d=await r.json(); t.remove();
+    let meta='';
+    if(d.structured&&d.structured.nlu_mode)meta=`NLU: ${d.structured.nlu_mode}`+(d.structured.issues?.length?` · detected: ${d.structured.issues.map(i=>i.issue_type).join(', ')}`:'')+(d.structured.urgency?` · urgency: ${d.structured.urgency}`:'');
+    add('bot',md(d.reply),meta);
+    if(d.unified){renderUnified(d.unified); loadTrail(d.unified.complaint_id);}
+  }catch(err){t.remove();add('bot','Error: '+err);}
+}
+
+let lastUnified=null;
+function renderUnified(u){lastUnified=u;}
+function nodeClass(lit,done){return 'node '+(done?'done':lit?'lit':'idle');}
+
+async function loadTrail(cid){
+  const ev=await (await fetch('api/trail/'+cid)).json();
+  const u=lastUnified&&lastUnified.complaint_id===cid?lastUnified:null;
+  const used=new Set((u?.departments||[]).map(d=>d.department));
+  const agentsDone=new Set((u?.departments||[]).filter(d=>d.a2a_task_state==='completed').map(d=>d.department));
+  let h=`<div class="flow">
+    <div class="node done" style="border-color:var(--conc)">Citizen Concierge<br><small>host · NLU</small></div>
+    <div class="node done" style="border-color:var(--orch)">Orchestrator<br><small>LangGraph</small></div>
+    <div class="depts">${[...new Set(['water','electricity','roads',...used])].map(k=>`<div class="${nodeClass(used.has(k),agentsDone.has(k))}" style="border-left:4px solid ${COLORS[k]}">${k[0].toUpperCase()+k.slice(1)} agent</div>`).join('')}</div>
+  </div>`;
+  if(u){
+    h+=`<div class="uni"><h3>Unified status · ${u.complaint_id}</h3>
+      <div style="font-size:13px;color:var(--muted)">${u.composite?'Composite complaint':'Single-department complaint'} · ${u.location||''} · overall <b style="color:var(--ink)">${u.overall_status}</b> · highest priority <b style="color:var(--ink)">${u.highest_priority||'-'}</b></div>
+      ${u.departments.map(d=>`<div class="tk"><span class="dot" style="background:${COLORS[d.department]||'#999'}"></span>
+        <span><b>${d.department_name||d.agent}</b> — ${d.issue_name||d.issue_type}<br><code style="font-family:var(--mono);font-size:12px">${d.ticket_id||'—'}</code> · ${d.assigned_office||''} · ${d.crew||''}</span>
+        <span><span class="prio ${d.priority}">${d.priority||d.a2a_task_state}</span></span></div>`).join('')}
+      ${u.coordination_plan?.length?`<div style="font-size:12.5px;margin-top:8px;color:var(--muted)">${u.coordination_plan.join('<br>')}</div>`:''}
+    </div>`;
+  }
+  h+=`<div style="font-size:12px;color:var(--muted);margin:4px 0 6px">Auditable task trail — ${ev.length} events (click to inspect raw JSON-RPC)</div>`;
+  const t0=ev.length?new Date(ev[0].ts).getTime():0;
+  h+=ev.map(e=>{
+    const ms=new Date(e.ts).getTime()-t0;
+    let who=e.actor.replace(/^http:\/\/[^/]+:(\d+)\/?$/,(m,p)=>(PORTS[p]?PORTS[p]+' agent':m));
+    let label=e.event, extra='';
+    if(e.event==='jsonrpc_request'){label=`→ ${e.detail.method}`;who='Orchestrator → '+(PORTS[(e.detail.to.match(/:(\d+)/)||[])[1]]||e.detail.to);}
+    if(e.event==='jsonrpc_response'){label='← response';if(e.detail.state)extra=`<span class="st ${e.detail.state}">${e.detail.state}</span>`;}
+    if(e.event.startsWith('task_')){const s=e.event.slice(5);label='task state';extra=`<span class="st ${s}">${s}</span>`;}
+    return `<div class="ev"><div class="t">+${(ms/1000).toFixed(2)}s</div><div><span class="who">${who}</span><span class="what">${label}</span>${extra}
+      <details><summary>details</summary><pre>${JSON.stringify(e.detail,null,2).replace(/</g,'&lt;')}</pre></details></div></div>`}).join('');
+  $('#p-flow').innerHTML=h;
+}
+
+async function loadAgents(){
+  const a=await (await fetch('api/agents')).json();
+  $('#p-agents').innerHTML=`<p style="font-size:13px;color:var(--muted);margin-top:0">The Orchestrator knows only these URLs. Everything below was discovered from each agent's <code>/.well-known/agent-card.json</code>.</p>`+a.map(c=>`<div class="agent">
+    <h3><span>${c.name}</span>${c._offline?'<span class="st failed">offline</span>':`<a href="${c._base}/console" target="_blank">operator console ↗</a>`}</h3>
+    <div class="u">${c.url||c._base} · A2A ${c.protocolVersion||''} · ${c.preferredTransport||''}</div>
+    <div style="font-size:13px;margin:6px 0">${c.description||''}</div>
+    ${(c.skills||[]).map(s=>`<span class="skill" title="${s.description}">${s.id}</span>`).join('')}
+    <div style="margin-top:6px"><a href="${c._base}/.well-known/agent-card.json" target="_blank">view raw Agent Card ↗</a></div></div>`).join('');
+}
+async function loadList(){
+  const l=await (await fetch('api/complaints')).json();
+  $('#p-list').innerHTML=l.length?`<table><tr><th>ID</th><th>Summary</th><th>Status</th></tr>${l.map(c=>`<tr><td><a onclick="openC('${c.complaint_id}')">${c.complaint_id}</a></td><td>${(c.summary||'').slice(0,70)}</td><td>${c.overall_status||''}${c.composite?' · multi-dept':''}</td></tr>`).join('')}</table>`:'<div class="empty">No complaints yet.</div>';
+}
+window.openC=async cid=>{send('status '+cid);document.querySelector('.tabs button[data-t=flow]').click();};
+</script>
+</body>
+</html>

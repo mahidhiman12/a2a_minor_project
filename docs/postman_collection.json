@@ -1,0 +1,166 @@
+{
+  "info": {
+    "name": "A2A Citizen Grievance System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Water agent - Agent Card",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://127.0.0.1:8101/.well-known/agent-card.json"
+      }
+    },
+    {
+      "name": "2. Water agent - message/send (pipe burst)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://127.0.0.1:8101/",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"message/send\",\n  \"params\": {\n    \"message\": {\n      \"kind\": \"message\",\n      \"messageId\": \"m-1\",\n      \"role\": \"user\",\n      \"parts\": [\n        {\n          \"kind\": \"data\",\n          \"data\": {\n            \"complaint_id\": \"CMP-POSTMAN-1\",\n            \"issue_type\": \"water_pipe_burst\",\n            \"location\": \"Laxmi Nagar\",\n            \"description\": \"Pipe burst near metro\",\n            \"urgency\": \"high\",\n            \"related_departments\": [\n              \"roads\"\n            ]\n          }\n        }\n      ]\n    }\n  }\n}"
+        }
+      }
+    },
+    {
+      "name": "3. Water agent - tasks/get (paste task id)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://127.0.0.1:8101/",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 2,\n  \"method\": \"tasks/get\",\n  \"params\": {\n    \"id\": \"task-PASTE-ID\"\n  }\n}"
+        }
+      }
+    },
+    {
+      "name": "4. Roads agent - rejected skill",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://127.0.0.1:8103/",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 3,\n  \"method\": \"message/send\",\n  \"params\": {\n    \"message\": {\n      \"kind\": \"message\",\n      \"messageId\": \"m-1\",\n      \"role\": \"user\",\n      \"parts\": [\n        {\n          \"kind\": \"data\",\n          \"data\": {\n            \"issue_type\": \"power_outage\"\n          }\n        }\n      ]\n    },\n    \"configuration\": {\n      \"blocking\": true\n    }\n  }\n}"
+        }
+      }
+    },
+    {
+      "name": "5. JSON-RPC error - unknown method",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://127.0.0.1:8102/",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 4,\n  \"method\": \"tasks/explode\",\n  \"params\": {}\n}"
+        }
+      }
+    },
+    {
+      "name": "6. Orchestrator - resolve composite complaint",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://127.0.0.1:8001/",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 5,\n  \"method\": \"message/send\",\n  \"params\": {\n    \"configuration\": {\n      \"blocking\": true\n    },\n    \"message\": {\n      \"kind\": \"message\",\n      \"messageId\": \"m-1\",\n      \"role\": \"user\",\n      \"parts\": [\n        {\n          \"kind\": \"data\",\n          \"data\": {\n            \"summary\": \"Road digging in Shastri Park cut the electricity cable\",\n            \"location\": \"Shastri Park\",\n            \"urgency\": \"high\",\n            \"issues\": [\n              {\n                \"department\": \"roads\",\n                \"issue_type\": \"excavation_damage\"\n              },\n              {\n                \"department\": \"electricity\",\n                \"issue_type\": \"cable_damage\"\n              }\n            ]\n          }\n        }\n      ]\n    }\n  }\n}"
+        }
+      }
+    },
+    {
+      "name": "7. Orchestrator - discovered agents",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://127.0.0.1:8001/agents"
+      }
+    },
+    {
+      "name": "8. Orchestrator - complaint trail",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://127.0.0.1:8001/complaints/CMP-PASTE-ID/trail"
+      }
+    },
+    {
+      "name": "9. Operator - mark ticket resolved",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://127.0.0.1:8101/tickets/DJB-PASTE-ID",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"RESOLVED\"\n}"
+        }
+      }
+    },
+    {
+      "name": "10. Concierge - chat (plain language)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://127.0.0.1:8000/api/chat",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"message\": \"Road repair near Laxmi Nagar metro broke the water pipe\",\n  \"session_id\": \"postman\"\n}"
+        }
+      }
+    }
+  ]
+}

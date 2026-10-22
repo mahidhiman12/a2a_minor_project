@@ -1,0 +1,22 @@
+[
+  {"id": 101, "text": "Since the road was excavated near Rohini sector 3 our colony has no electricity", "departments": ["roads", "electricity"], "issue_types": ["excavation_damage", "power_outage"], "location": "Rohini"},
+  {"id": 102, "text": "Water is leaking from a broken pipe near Janakpuri district centre", "departments": ["water"], "issue_types": ["water_pipe_burst"], "location": "Janakpuri"},
+  {"id": 103, "text": "The street light pole near Saket metro is giving electric shock to people", "departments": ["electricity"], "issue_types": ["electric_hazard", "streetlight_fault"], "location": "Saket"},
+  {"id": 104, "text": "Kalkaji mein sadak pe paani bhar gaya hai", "departments": ["roads"], "issue_types": ["waterlogging"], "location": "Kalkaji"},
+  {"id": 105, "text": "A big tree has fallen on the road in Vasant Kunj", "departments": ["roads"], "issue_types": ["road_obstruction"], "location": "Vasant Kunj"},
+  {"id": 106, "text": "Smelly yellow water coming from taps in Okhla, people are falling sick", "departments": ["water"], "issue_types": ["water_contamination"], "location": "Okhla"},
+  {"id": 107, "text": "Contractor dug the lane in Seelampur for sewer work and broke the drinking water pipe", "departments": ["roads", "water"], "issue_types": ["excavation_damage", "water_pipe_burst"], "location": "Seelampur"},
+  {"id": 108, "text": "Power outage in Dwarka sector 12 for 6 hours in this heat", "departments": ["electricity"], "issue_types": ["power_outage"], "location": "Dwarka"},
+  {"id": 109, "text": "Road caved in near Preet Vihar crossing", "departments": ["roads"], "issue_types": ["pothole"], "location": "Preet Vihar"},
+  {"id": 110, "text": "Uttam Nagar me naali jam ho gayi hai aur gutter ka paani bahar aa raha hai", "departments": ["water"], "issue_types": ["sewer_overflow"], "location": "Uttam Nagar"},
+  {"id": 111, "text": "Digging for the new metro line at Mayur Vihar cut a high voltage cable and the trench is open", "departments": ["roads", "electricity"], "issue_types": ["excavation_damage", "cable_damage"], "location": "Mayur Vihar"},
+  {"id": 112, "text": "Very weak water pressure in Pitampura every morning", "departments": ["water"], "issue_types": ["water_low_pressure"], "location": "Pitampura"},
+  {"id": 113, "text": "Transformer caught fire in Lajpat Nagar market", "departments": ["electricity"], "issue_types": ["transformer_fault"], "location": "Lajpat Nagar"},
+  {"id": 114, "text": "The pavement near Connaught Place inner circle is completely broken", "departments": ["roads"], "issue_types": ["footpath_damage"], "location": "Connaught Place"},
+  {"id": 115, "text": "Burst water main in Shahdara has flooded the street and there is no supply in our houses", "departments": ["water", "roads"], "issue_types": ["water_pipe_burst", "waterlogging", "water_no_supply"], "location": "Shahdara"},
+  {"id": 116, "text": "Bijli ka taar toot ke road pe gira hua hai Yamuna Vihar mein", "departments": ["electricity"], "issue_types": ["electric_hazard"], "location": "Yamuna Vihar"},
+  {"id": 117, "text": "Karol Bagh main road has many potholes and the street lights are also off", "departments": ["roads", "electricity"], "issue_types": ["pothole", "streetlight_fault"], "location": "Karol Bagh"},
+  {"id": 118, "text": "Voltage fluctuation in Chandni Chowk burnt my inverter", "departments": ["electricity"], "issue_types": ["voltage_fluctuation"], "location": "Chandni Chowk"},
+  {"id": 119, "text": "Laxmi Nagar mein teen din se nal mein paani nahi aaya", "departments": ["water"], "issue_types": ["water_no_supply"], "location": "Laxmi Nagar"},
+  {"id": 120, "text": "PWD road work in Shastri Park damaged the sewer line and sewage is on the road", "departments": ["roads", "water"], "issue_types": ["excavation_damage", "sewer_overflow"], "location": "Shastri Park"}
+]
