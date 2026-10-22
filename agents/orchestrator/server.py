@@ -21,6 +21,7 @@ from agents.orchestrator.graph import agent_key, build_graph, build_unified, dis
 from common import config
 from common.a2a import (A2AClient, AgentCard, AgentProvider, AgentSkill, TaskStore, get_data,
                         make_artifact, mount_a2a, now_iso)
+from common.localities import LOCALITY_COORDS, normalise_locality
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
 log = logging.getLogger("orchestrator")
@@ -211,6 +212,33 @@ def trail(cid: str):
                          "ORDER BY id", (cid,)).fetchall()
     return [{"ts": r["ts"], "actor": r["actor"], "event": r["event"],
              "detail": json.loads(r["detail"])} for r in rows]
+
+
+@app.get("/heatmap")
+def heatmap():
+    """Complaint density per locality for the map view. Built from this agent's own
+    audit DB (last known ticket status), so it needs no extra calls to departments."""
+    with db() as c:
+        rows = c.execute("SELECT structured, unified FROM complaints WHERE unified IS NOT NULL").fetchall()
+    points, unmapped = {}, 0
+    for r in rows:
+        u, geo = json.loads(r["unified"]), json.loads(r["structured"]).get("geo") or {}
+        loc = normalise_locality(u.get("location"))
+        if loc in LOCALITY_COORDS:
+            lat, lng = LOCALITY_COORDS[loc]
+        elif geo.get("lat") is not None:  # any place geocoded by Nominatim
+            loc, lat, lng = u.get("location") or geo.get("name"), geo["lat"], geo["lng"]
+        else:
+            unmapped += 1
+            continue
+        p = points.setdefault(loc, {"locality": loc, "lat": lat, "lng": lng,
+                                    "complaints": 0, "tickets": []})
+        p["complaints"] += 1
+        p["tickets"] += [{"department": d["department"], "priority": d.get("priority"),
+                          "status": d.get("ticket_status")}
+                         for d in u.get("departments", []) if d.get("ticket_id")]
+    return {"points": sorted(points.values(), key=lambda p: -p["complaints"]),
+            "unmapped": unmapped}
 
 
 @app.get("/health")

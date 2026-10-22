@@ -128,7 +128,8 @@ def build_graph():
                 [text_part(sub["description"]),
                  data_part({"complaint_id": c["complaint_id"], "issue_type": sub["issue_type"],
                             "description": sub["description"], "location": c.get("location"),
-                            "landmark": c.get("landmark"), "urgency": c.get("urgency", "normal"),
+                            "landmark": c.get("landmark"), "geo": c.get("geo"),
+                            "urgency": c.get("urgency", "normal"),
                             "related_departments": sub["related_departments"]})],
                 context_id=c["complaint_id"])
             try:

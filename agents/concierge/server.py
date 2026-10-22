@@ -63,6 +63,11 @@ async def complaints():
     return await _orch("/complaints")
 
 
+@app.get("/api/heatmap")
+async def heatmap():
+    return await _orch("/heatmap")
+
+
 @app.get("/api/trail/{cid}")
 async def trail(cid: str):
     return await _orch(f"/complaints/{cid}/trail")

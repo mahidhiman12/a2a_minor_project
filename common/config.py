@@ -54,7 +54,17 @@ NLU_MODE = os.getenv("NLU_MODE", "rules").lower()
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2")
 GEMINI_API_KEY = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY", "")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+# "-latest" alias so the default survives Google retiring a model; pin an exact name
+# (python docs/list_gemini_models.py) when you report evaluation results.
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-flash-latest")
+
+# ---- Geocoding (any place name -> coordinates) ------------------------------
+#   nominatim : free OpenStreetMap geocoder, no API key, max 1 request/second
+#   off       : only the built-in localities in common/localities.py (offline)
+GEOCODER = os.getenv("GEOCODER", "nominatim").lower()
+NOMINATIM_URL = os.getenv("NOMINATIM_URL", "https://nominatim.openstreetmap.org")
+GEOCODER_USER_AGENT = os.getenv("GEOCODER_USER_AGENT", "a2a-grievance-student-project/1.0")
+NOMINATIM_EMAIL = os.getenv("NOMINATIM_EMAIL", "")  # optional contact, asked for by the policy
 
 # Simulated processing delay of department back-ends (seconds), so the
 # submitted -> working -> completed transitions are visible.

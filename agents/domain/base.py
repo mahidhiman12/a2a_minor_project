@@ -22,7 +22,7 @@ from pydantic import BaseModel
 from common import config
 from common.a2a import (AgentCard, AgentProvider, AgentSkill, TaskStore, get_data,
                         make_artifact, mount_a2a)
-from common.localities import LOCALITIES, normalise_locality
+from common.localities import LOCALITIES, nearest_locality, normalise_locality
 
 log = logging.getLogger("domain")
 
@@ -124,10 +124,18 @@ def build_domain_app(spec: DomainSpec) -> FastAPI:
     def process_subtask(sub: dict) -> dict:
         issue_type = sub.get("issue_type")
         it = issues[issue_type]
-        locality = normalise_locality(sub.get("location")) or "Unknown"
+        locality = normalise_locality(sub.get("location"))
+        zone, geo = locality, sub.get("geo") or {}
+        notes = []
+        if not locality and geo.get("lat") is not None:
+            # a place outside our asset register: serve it from the nearest zone office
+            locality = sub.get("location") or geo.get("name")
+            zone, dist = nearest_locality(geo["lat"], geo["lng"])
+            notes.append(f"Served by nearest zone: {zone} ({dist:.1f} km)")
+        locality = locality or "Unknown"
         now = datetime.now(timezone.utc)
         with db() as c:
-            asset = c.execute("SELECT * FROM assets WHERE locality=?", (locality,)).fetchone()
+            asset = c.execute("SELECT * FROM assets WHERE locality=?", (zone,)).fetchone()
             office = asset["zone_office"] if asset else f"{spec.ticket_prefix} Central Control Room"
             crew = asset["crew"] if asset else "Unassigned (location to be verified)"
             asset_id = asset["asset_id"] if asset else None
@@ -145,7 +153,6 @@ def build_domain_app(spec: DomainSpec) -> FastAPI:
             ticket_id = f"{spec.ticket_prefix}-{now:%y%m%d}-{n:04d}"
             priority = compute_priority(it, sub.get("urgency", "normal"))
             eta = (now + timedelta(hours=it.sla_hours)).isoformat()
-            notes = []
             if sub.get("related_departments"):
                 notes.append("Coordinate with: " + ", ".join(sub["related_departments"]))
             if existing:

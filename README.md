@@ -202,7 +202,18 @@ Unit and protocol tests: `python -m pytest -q` (7 tests: Agent Card fields, task
 
 ---
 
-## 8. Adding a new department
+## 8. Any place in Delhi (free geocoding)
+
+Citizens are not limited to the 20 built-in localities. Any place name ("Rajouri Garden", "kamla nagar me…") is looked up with **OpenStreetMap Nominatim** (free, no API key) in `common/geocode.py`:
+
+* results are limited to Delhi and cached in `data/db/geocode.db`, with at most 1 request per second as the Nominatim usage policy requires
+* the department agent serves the place from its **nearest zone office** (e.g. Rajouri Garden → Janakpuri, 4.6 km) so a real crew is assigned
+* the heatmap (new *Heatmap* tab) plots the exact coordinates
+* if the place can't be found, the Concierge asks once for a nearby landmark; offline (or `GEOCODER=off`) it falls back to the built-in localities
+
+Optional settings: `GEOCODER=nominatim|off`, `NOMINATIM_EMAIL=you@example.com` (contact address the policy asks for), `NOMINATIM_URL` (for a self-hosted server).
+
+## 9. Adding a new department
 
 1. Copy `agents/domain/sanitation.py`. Give it a `key`, a `ticket_prefix` and its `issues` (skills).
 2. Run it on a new port: `uvicorn agents.domain.mydept:app --port 8105`.
@@ -210,13 +221,14 @@ Unit and protocol tests: `python -m pytest -q` (7 tests: Agent Card fields, task
 
 The Orchestrator discovers it from its Agent Card and the Concierge learns its skills automatically. No other code changes are needed.
 
-## 9. Project structure
+## 10. Project structure
 
 ```
 a2a-grievance/
 ├── common/
 │   ├── a2a.py            A2A protocol: Agent Card, JSON-RPC server, TaskStore, client
 │   ├── config.py         ports, URLs, NLU mode (.env)
+│   ├── geocode.py        any place name -> coordinates (OpenStreetMap Nominatim, cached)
 │   └── localities.py     simulated Delhi geography + fuzzy locality matching
 ├── agents/
 │   ├── concierge/        HOST agent: nlu.py, core.py (dialogue), server.py, static/index.html
@@ -230,13 +242,13 @@ a2a-grievance/
 └── run_all.py            starts every agent as its own process
 ```
 
-## 10. Troubleshooting
+## 11. Troubleshooting
 
 * **"Address already in use"**: an old run is still going. Close it, or change the ports in `.env` (`CONCIERGE_PORT=9000` and so on).
 * **Ollama mode keeps saying "fallback"**: make sure `ollama serve` is running and the model is pulled (`ollama list`).
 * **Gemini 429 error**: you hit the free-tier rate limit. Wait a minute. The rules engine fills in meanwhile.
 * **Start with a clean demo**: `python run_all.py --reset`.
 
-## 11. Future scope (from the synopsis)
+## 12. Future scope (from the synopsis)
 
 Multilingual and voice intake, SLA-based automatic escalation (`tasks/get` polling already provides the hook), A2A push notifications instead of polling, OpenTelemetry export of the trail, citizen authentication, and integration with real departmental systems.

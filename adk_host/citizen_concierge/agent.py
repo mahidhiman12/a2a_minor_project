@@ -23,6 +23,7 @@ from google.adk.agents import Agent  # noqa: E402
 
 from agents.concierge.core import call_orchestrator, render_status, skill_catalog  # noqa: E402
 from common import config  # noqa: E402
+from common.geocode import GeocoderUnavailable, geocode  # noqa: E402
 from common.localities import normalise_locality  # noqa: E402
 
 
@@ -60,8 +61,13 @@ async def register_complaint(summary: str, location: str, issue_types: list[str]
     bad = [i for i in issue_types if i not in cat]
     if bad:
         return {"error": f"Unknown issue types {bad}. Call list_department_skills."}
+    try:
+        geo = await geocode(location)
+    except GeocoderUnavailable:
+        geo = None
     complaint = {
-        "summary": summary, "location": normalise_locality(location) or location,
+        "summary": summary, "location": geo["name"] if geo else normalise_locality(location) or location,
+        "geo": geo,
         "landmark": landmark or None,
         "urgency": urgency if urgency in ("normal", "high", "critical") else "normal",
         "issues": [{"department": cat[i], "issue_type": i, "description": summary}

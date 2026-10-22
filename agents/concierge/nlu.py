@@ -120,6 +120,9 @@ LANDMARK_RX = re.compile(
 LOCATION_RX = re.compile(
     r"\b(?:in|at|near|of|from)\s+([A-Z][a-zA-Z]+(?:\s+(?:[A-Z][a-zA-Z]+|\d+))*"
     r"(?:\s+(?:Nagar|Vihar|Colony|Enclave|Extension|Bagh|Park|Puri|Pura))?)")
+# lowercase / Hinglish fallback: "in rajouri garden", "kamla nagar me" (geocoded later)
+_SUFFIX = r"(?!(?:the|our|my|this|that|a)\b)[a-z]+\s+(?:nagar|vihar|colony|enclave|garden|bagh|kunj|puri|pura|ganj|extension|chowk)"
+PLACE_RX = re.compile(rf"\b(?:in|at|near|from)\s+({_SUFFIX})\b|\b({_SUFFIX})\s+(?:me|mein|mai|main)\b", re.I)
 
 
 def _matches(text: str, patterns: list[str]) -> int:
@@ -134,6 +137,10 @@ def extract_location(text: str) -> tuple[str | None, str | None]:
         m = LOCATION_RX.search(text)
         if m and m.group(1).lower() not in {"the", "our", "my"}:
             loc = m.group(1).strip()
+    if not loc:
+        m = PLACE_RX.search(text)
+        if m:
+            loc = (m.group(1) or m.group(2)).strip().title()
     return loc, landmark
 
 
@@ -275,10 +282,16 @@ async def gemini_nlu(text: str, catalog: list[dict]) -> dict:
     url = (f"https://generativelanguage.googleapis.com/v1beta/models/"
            f"{config.GEMINI_MODEL}:generateContent")
     async with httpx.AsyncClient(timeout=60) as h:
-        r = await h.post(url, params={"key": config.GEMINI_API_KEY}, json={
+        # key goes in a header, not the URL, so it never shows up in logs or error messages
+        r = await h.post(url, headers={"x-goog-api-key": config.GEMINI_API_KEY}, json={
             "contents": [{"parts": [{"text": build_prompt(text, catalog)}]}],
             "generationConfig": {"temperature": 0, "responseMimeType": "application/json"}})
-        r.raise_for_status()
+        if r.status_code != 200:
+            try:
+                detail = r.json()["error"]["message"]
+            except Exception:
+                detail = r.text[:200]
+            raise RuntimeError(f"Gemini HTTP {r.status_code}: {detail}")
         out = r.json()["candidates"][0]["content"]["parts"][0]["text"]
         return _validate(_parse_json(out), catalog, text, f"gemini:{config.GEMINI_MODEL}")
 
@@ -302,5 +315,6 @@ async def understand(text: str, catalog: list[dict], mode: str | None = None) ->
     except Exception as e:
         log.warning("LLM NLU (%s) failed, falling back to rules: %s", mode, e)
         res = rules_nlu(text, catalog)
-        res["nlu_mode"] = f"rules (fallback: {mode} unavailable)"
+        reason = str(e) or type(e).__name__
+        res["nlu_mode"] = f"rules (fallback: {mode} unavailable: {reason[:300]})"
         return res

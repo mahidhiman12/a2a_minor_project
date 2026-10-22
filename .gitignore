@@ -2,5 +2,8 @@ __pycache__/
 *.pyc
 .env
 data/db/
+# local databases (chat history from `adk web`, any stray SQLite files)
+.adk/
+*.db
 .pytest_cache/
 .venv/

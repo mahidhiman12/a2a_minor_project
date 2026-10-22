@@ -67,6 +67,54 @@ def test_nlu_hinglish_and_urgency():
     assert s["urgency"] == "critical"
 
 
+def test_heatmap_groups_by_locality():
+    import json
+    from agents.orchestrator import server
+    unified = {"location": "laxmi nagar", "departments": [
+        {"department": "water", "ticket_id": "DJB-1", "priority": "HIGH", "ticket_status": "ASSIGNED"},
+        {"department": "roads", "ticket_id": None, "priority": None, "ticket_status": None}]}
+    with server.db() as c:
+        c.execute("INSERT INTO complaints VALUES(?,?,?,?,?)", ("CMP-H1", "t", "{}", json.dumps(unified), "[]"))
+        c.execute("INSERT INTO complaints VALUES(?,?,?,?,?)",
+                  ("CMP-H2", "t", "{}", json.dumps({"location": "Atlantis", "departments": []}), "[]"))
+    h = TestClient(server.app).get("/heatmap").json()
+    p = next(p for p in h["points"] if p["locality"] == "Laxmi Nagar")
+    assert p["complaints"] == 1 and p["tickets"] == [
+        {"department": "water", "priority": "HIGH", "status": "ASSIGNED"}]
+    assert h["unmapped"] >= 1
+
+
+def test_any_place_is_geocoded_and_served_by_nearest_zone():
+    import asyncio
+    import json
+    from common import geocode as g
+    from common.localities import nearest_locality
+    # built-in localities never hit the network
+    assert asyncio.run(g.geocode("laxmi nagar"))["source"] == "builtin"
+    # a cached Nominatim answer (no network in tests)
+    hit = {"name": "Rajouri Garden", "lat": 28.6492, "lng": 77.1227, "display": "", "source": "nominatim"}
+    with g._db() as c:
+        c.execute("INSERT OR REPLACE INTO geocache VALUES(?,?,?)", ("rajouri garden", json.dumps(hit), 0))
+    assert asyncio.run(g.geocode("Rajouri  Garden")) == hit
+    assert nearest_locality(hit["lat"], hit["lng"])[0] == "Janakpuri"
+    # the department agent assigns a real crew from the nearest zone office
+    from agents.domain.water import app
+    with TestClient(app) as c:
+        r = rpc(c, "message/send", {"message": msg({"issue_type": "water_pipe_burst",
+                                                    "location": "Rajouri Garden", "geo": hit}),
+                                    "configuration": {"blocking": True}})
+        t = r["result"]["artifacts"][0]["parts"][0]["data"]
+    assert t["locality"] == "Rajouri Garden" and t["assigned_office"] == "DJB West Zone Office"
+    assert t["crew"].startswith("Crew ") and "nearest zone: Janakpuri" in t["notes"]
+
+
+def test_location_follow_up_accepts_unknown_place():
+    from agents.concierge.core import _clean_place
+    from agents.concierge.nlu import extract_location
+    assert extract_location("rajouri garden me gaddha hai")[0] == "Rajouri Garden"
+    assert _clean_place("in kamla nagar please") == "Kamla Nagar"
+
+
 def test_unified_status_and_coordination():
     res = [{"department": "water", "agent_name": "W", "issue_type": "water_pipe_burst",
             "state": "completed", "task": {"id": "t1"},

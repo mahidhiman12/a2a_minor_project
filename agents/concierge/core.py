@@ -10,12 +10,16 @@ Responsibilities
 """
 from __future__ import annotations
 
+import logging
 import re
 import time
 
-from agents.concierge.nlu import understand
+from agents.concierge.nlu import extract_location, understand
 from common import config
 from common.a2a import A2AClient, data_part, get_data, make_message, text_part
+from common.geocode import GeocoderUnavailable, geocode
+
+log = logging.getLogger("concierge")
 
 COMPLAINT_ID_RX = re.compile(r"\bCMP-\d{8}-\d{4}\b", re.I)
 DEPT_WORDS = {
@@ -104,6 +108,13 @@ def render_status(u: dict, new: bool = True) -> str:
     return "\n".join(lines)
 
 
+def _clean_place(text: str) -> str | None:
+    """'in rajouri garden please' -> 'Rajouri Garden' (a short free-text answer)."""
+    t = re.sub(r"^\s*(it'?s|it is|this is|area is|locality is|in|at|near)\s+", "", text, flags=re.I)
+    t = re.sub(r"\s+(me|mein|mai|main|hai|please|pls)\s*$", "", t.strip(" .,!?"), flags=re.I)
+    return t.title() if t and len(t.split()) <= 6 else None
+
+
 class Session:
     def __init__(self):
         self.pending: dict | None = None   # complaint waiting for more info
@@ -136,6 +147,11 @@ async def handle_message(text: str, session: Session, mode: str | None = None) -
     catalog = await skill_catalog()
     s = await understand(combined, catalog, mode)
 
+    # The citizen is answering "which locality?": their answer IS the location, even if
+    # it is a place the NLU has never seen ("rajouri garden"). Geocoding checks it below.
+    if session.pending and session.pending.get("need") == "location":
+        s["location"] = extract_location(text)[0] or _clean_place(text) or s["location"]
+
     if not s["issues"]:
         depts = [d for d, rx in DEPT_WORDS.items() if re.search(rx, combined, re.I)]
         session.pending = {"text": combined}
@@ -153,11 +169,26 @@ async def handle_message(text: str, session: Session, mode: str | None = None) -
                 "structured": s, "state": "input-required"}
 
     if not s["location"]:
-        session.pending = {"text": combined}
+        session.pending = {"text": combined, "need": "location"}
         names = ", ".join(sorted({i["issue_type"].replace("_", " ") for i in s["issues"]}))
         return {"reply": f"Got it - {names}. Which locality / area is this in? "
-                         f"(e.g. Laxmi Nagar, Shastri Park, Dwarka)", "structured": s,
+                         f"(e.g. Laxmi Nagar, Rajouri Garden, Dwarka Sector 10)", "structured": s,
                 "state": "input-required"}
+
+    # ---- geocode any place name (OpenStreetMap Nominatim, free) ----
+    try:
+        geo = await geocode(s["location"])
+    except GeocoderUnavailable as e:  # offline: keep the name, departments use a control room
+        log.warning("geocoding unavailable, continuing without coordinates: %s", e)
+        geo = None
+    else:
+        if geo is None and not (session.pending or {}).get("geo_retry"):
+            session.pending = {"text": combined, "need": "location", "geo_retry": True}
+            return {"reply": f"I couldn't find \"{s['location']}\" in Delhi. Could you give the "
+                             "area name or a nearby landmark (e.g. 'Rajouri Garden metro')?",
+                    "structured": s, "state": "input-required"}
+    if geo:
+        s["location"], s["geo"] = geo["name"], geo
 
     session.pending = None
     s["citizen_text"] = combined
