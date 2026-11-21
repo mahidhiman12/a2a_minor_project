@@ -25,7 +25,8 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from agents.concierge import auth
-from agents.concierge.core import COMPLAINT_ID_RX, Session, call_orchestrator, handle_message
+from agents.concierge.core import (COMPLAINT_ID_RX, DELHI_BOUNDS, Session, call_orchestrator, file_draft,
+                                   handle_message)
 from common import config
 from common.a2a import (AgentCard, AgentProvider, AgentSkill, TaskStore, get_text,
                         make_artifact, mount_a2a)
@@ -91,13 +92,39 @@ class RegisterIn(BaseModel):
     display_name: str | None = None
 
 
-class TicketUpdateIn(BaseModel):
-    status: str
+class FeedbackIn(BaseModel):
+    action: str                 # "confirm" or "reopen"
     note: str | None = None
 
 
+class TicketUpdateIn(BaseModel):
+    status: str | None = None   # None = post a note only
+    note: str | None = None
+    question: bool = False      # the note is a question the citizen should answer
+    crew: str | None = None
+    priority: str | None = None
+    eta: str | None = None      # ISO 8601
+
+
+class TransferIn(BaseModel):
+    to_department: str
+    issue_type: str | None = None
+    note: str
+
+
 # ------------------------------ auth helpers ------------------------------
+def bearer_token(request: Request) -> str | None:
+    h = request.headers.get("authorization") or ""
+    return h[7:].strip() if h.lower().startswith("bearer ") else None
+
+
 def current_user(request: Request) -> dict | None:
+    """Per-tab sign-in: a tab that holds its own session token sends it as
+    'Authorization: Bearer <token>' and is that user, whatever the shared cookie says.
+    A tab without one (e.g. a freshly opened one) falls back to the cookie."""
+    token = bearer_token(request)
+    if token is not None:
+        return auth.read_session(token)  # an invalid/expired tab token never falls back
     return auth.read_session(request.cookies.get(auth.COOKIE))
 
 
@@ -134,10 +161,6 @@ text-decoration:none;font-weight:600}}@media(prefers-color-scheme:dark){{body{{b
 </head><body><div class="c"><h1>{title}</h1><p>{text}<br><small>Error {code}</small></p>
 <a href="{home}">Go to My Page</a></div></body></html>""", status_code=code)
 
-
-def set_session_cookie(resp, user: dict):
-    resp.set_cookie(auth.COOKIE, auth.make_session(user), max_age=int(config.SESSION_HOURS * 3600),
-                    httponly=True, samesite="lax", secure=False, path="/")
 
 
 # ------------------------------ department discovery ------------------------------
@@ -202,8 +225,14 @@ async def dept_call(method: str, dept: str, path: str, json: dict | None = None)
 
 
 # ------------------------------ pages ------------------------------
+# With the React app every page route returns the app: each browser tab can be signed in as
+# a different user (per-tab sign-in), which the server can't see on a page load, so the app
+# routes and guards in the browser. Every /api route still enforces the role. The classic
+# pages (no build, or CONCIERGE_UI=classic) keep the server-side checks below.
 @app.get("/login")
 def login_page(request: Request):
+    if USE_SPA:
+        return page("login.html")
     user = current_user(request)
     if user:
         return RedirectResponse(auth.home_for(user), status_code=303)
@@ -224,6 +253,8 @@ def index(request: Request):
 
 @app.get("/home")
 def citizen_home(request: Request):
+    if USE_SPA:
+        return page("index.html")
     user = current_user(request)
     if not user:
         return to_login()
@@ -234,6 +265,8 @@ def citizen_home(request: Request):
 
 @app.get("/dept/{dept}")
 async def dept_page(dept: str, request: Request):
+    if USE_SPA:
+        return page("dept.html")
     user = current_user(request)
     if not user:
         return to_login()
@@ -249,6 +282,8 @@ async def dept_page(dept: str, request: Request):
 
 @app.get("/admin")
 def admin_page(request: Request):
+    if USE_SPA:
+        return page("admin.html")
     user = current_user(request)
     if not user:
         return to_login()
@@ -266,8 +301,16 @@ async def login(body: LoginIn):
     user = auth.authenticate(name, body.password)
     if not user:
         return JSONResponse({"detail": "Wrong username or password"}, status_code=401)
-    resp = JSONResponse({"ok": True, "user": user, "redirect": auth.home_for(user)})
-    set_session_cookie(resp, user)
+    return signed_in(user)
+
+
+def signed_in(user: dict) -> JSONResponse:
+    """The tab that signed in keeps `token` for itself (per-tab sign-in). The cookie is the
+    default account for tabs opened later; tabs that already hold a token are not affected."""
+    token = auth.make_session(user)
+    resp = JSONResponse({"ok": True, "user": user, "redirect": auth.home_for(user), "token": token})
+    resp.set_cookie(auth.COOKIE, token, max_age=int(config.SESSION_HOURS * 3600),
+                    httponly=True, samesite="lax", secure=False, path="/")
     return resp
 
 
@@ -278,22 +321,30 @@ def register(body: RegisterIn):
         user = auth.create_user(body.username, body.password, "citizen", None, body.display_name)
     except ValueError as e:
         return JSONResponse({"detail": str(e)}, status_code=400)
-    resp = JSONResponse({"ok": True, "user": user, "redirect": auth.home_for(user)})
-    set_session_cookie(resp, user)
-    return resp
+    return signed_in(user)
 
 
 @app.post("/api/logout")
-def logout():
+def logout(request: Request):
+    """Signs out this tab. The shared cookie is cleared only if it belongs to the same user,
+    so signing out the officer tab doesn't sign out the citizen tab (or the other way round)."""
     resp = JSONResponse({"ok": True, "redirect": "/login"})
-    resp.delete_cookie(auth.COOKIE, path="/")
+    tab = auth.read_session(bearer_token(request)) if bearer_token(request) else None
+    cookie = auth.read_session(request.cookies.get(auth.COOKIE))
+    if tab is None or (cookie and cookie["id"] == tab["id"]):
+        resp.delete_cookie(auth.COOKIE, path="/")
     return resp
 
 
 @app.get("/api/me")
 def me(request: Request):
+    """Who this tab is. A tab signed in only through the cookie also gets the token, so it
+    can pin itself to this account before another tab signs in as someone else."""
     user = api_user(request)
-    return {**user, "home": auth.home_for(user)}
+    out = {**user, "home": auth.home_for(user)}
+    if bearer_token(request) is None:
+        out["token"] = request.cookies.get(auth.COOKIE)
+    return out
 
 
 # ------------------------------ citizen API ------------------------------
@@ -307,12 +358,47 @@ async def chat(body: ChatIn, request: Request):
                 "state": "failed"}
     s = sessions.setdefault(f"{user['id']}:{body.session_id}", Session())
     try:
-        out = await handle_message(body.message, s, body.mode)
+        out = await handle_message(body.message, s, body.mode, confirm=True)
     except httpx.ConnectError:
         return {"reply": "The Orchestrator agent is not reachable. Is it running on "
                          f"{config.ORCHESTRATOR_URL}?", "state": "failed"}
     if out.get("state") == "completed" and out.get("unified"):
         auth.record_owner(out["unified"]["complaint_id"], user["id"])
+    return out
+
+
+class ConfirmIn(BaseModel):
+    session_id: str = "default"
+    action: str = "file"            # "file" or "cancel"
+    lat: float | None = None        # the exact spot, if the citizen moved the map pin
+    lng: float | None = None
+
+
+@app.post("/api/chat/confirm")
+async def chat_confirm(body: ConfirmIn, request: Request):
+    """The 'File complaint' / 'Cancel' buttons under the Concierge's summary. Filing can carry
+    the exact spot the citizen marked on the map."""
+    user = api_user(request, "citizen")
+    s = sessions.get(f"{user['id']}:{body.session_id}")
+    if not s or not s.draft:
+        raise HTTPException(409, "There's nothing waiting to be filed. Describe the problem first.")
+    if body.action == "cancel":
+        s.draft = s.pending = None
+        return {"reply": "Okay, I haven't filed anything. Describe the problem again whenever "
+                         "you're ready.", "state": "idle"}
+    if body.action != "file":
+        raise HTTPException(400, "action must be 'file' or 'cancel'")
+    pin = None
+    if body.lat is not None and body.lng is not None:
+        south, north, west, east = DELHI_BOUNDS
+        if not (south <= body.lat <= north and west <= body.lng <= east):
+            raise HTTPException(400, "Please put the pin somewhere in Delhi")
+        pin = (body.lat, body.lng)
+    try:
+        out = await file_draft(s, pin)
+    except httpx.ConnectError:
+        raise HTTPException(503, "The Orchestrator agent is not reachable") from None
+    auth.record_owner(out["unified"]["complaint_id"], user["id"])
     return out
 
 
@@ -356,7 +442,8 @@ async def complaint_detail(cid: str, request: Request):
         unified, live = await call_orchestrator({"action": "status", "complaint_id": cid}), True
     except Exception as e:  # department agent down: show the last stored status
         log.warning("live status refresh for %s failed: %s", cid, e)
-    return {"unified": unified, "structured": stored.get("structured"), "live": live}
+    return {"unified": unified, "structured": stored.get("structured"), "live": live,
+            "updates": await department_updates(unified)}
 
 
 @app.get("/api/public/overview")
@@ -461,10 +548,238 @@ async def dept_update(dept: str, ticket_id: str, body: TicketUpdateIn, request: 
     user = api_user(request, "officer", "admin")
     if not can_see_dept(user, dept):
         raise HTTPException(403, "Not your department")
-    note = body.note or f"Status set to {body.status} by {user['display_name']}"
     _, ticket = await dept_call("PATCH", dept, f"/tickets/{ticket_id}",
-                                {"status": body.status, "note": note})
+                                {**body.model_dump(), "actor": user["display_name"]})
     return ticket
+
+
+@app.post("/api/dept/{dept}/tickets/{ticket_id}/transfer")
+async def dept_transfer(dept: str, ticket_id: str, body: TransferIn, request: Request):
+    """'This isn't ours': the Orchestrator registers a ticket with the other department over
+    A2A, then this department marks its own ticket TRANSFERRED. If the other department
+    can't take it, nothing changes here."""
+    user = api_user(request, "officer", "admin")
+    if not can_see_dept(user, dept):
+        raise HTTPException(403, "Not your department")
+    if not body.note.strip():
+        raise HTTPException(400, "Say why it belongs to the other department")
+    if body.to_department == dept:
+        raise HTTPException(400, "Pick another department")
+    _, t = await dept_call("GET", dept, f"/tickets/{ticket_id}")
+    if t["ticket_status"] in ("CLOSED", "REJECTED", "TRANSFERRED"):
+        raise HTTPException(400, f"A {t['ticket_status']} ticket can't be transferred")
+    if t.get("duplicate_of"):
+        raise HTTPException(400, f"This report is linked to {t['duplicate_of']}. Transfer that ticket instead.")
+    if any(x for x in t.get("duplicates") or []):
+        raise HTTPException(400, "Other reports are linked to this ticket, so it can't be transferred. "
+                                 "Reject it with a reason instead.")
+    if not t.get("complaint_ref"):
+        raise HTTPException(400, "Only tickets from a citizen complaint can be transferred")
+    try:
+        unified = await call_orchestrator({"action": "transfer", "complaint_id": t["complaint_ref"],
+                                           "from_ticket_id": ticket_id, "to_department": body.to_department,
+                                           "issue_type": body.issue_type, "note": body.note.strip()})
+    except httpx.HTTPError:
+        raise HTTPException(503, "The Orchestrator agent is not reachable") from None
+    except RuntimeError as e:  # e.g. the other department's agent is offline
+        raise HTTPException(409, f"The transfer didn't go through: {e}") from None
+    _, ticket = await dept_call("POST", dept, f"/tickets/{ticket_id}/transfer",
+                                {"to_department": body.to_department, "note": body.note.strip(),
+                                 "to_ticket_id": unified.get("new_ticket_id"), "actor": user["display_name"]})
+    try:  # show the old ticket as TRANSFERRED in the complaint right away
+        await call_orchestrator({"action": "status", "complaint_id": t["complaint_ref"]})
+    except Exception as e:
+        log.warning("status refresh after transfer of %s: %s", ticket_id, e)
+    return {"ticket": ticket, "new_ticket_id": unified.get("new_ticket_id"),
+            "to_department": body.to_department}
+
+
+@app.get("/api/dept/{dept}/tickets/{ticket_id}")
+async def dept_ticket(dept: str, ticket_id: str, request: Request):
+    """One ticket for its department's officer (or an admin): the ticket and its history,
+    plus the complaint it came from and every other department's ticket on it."""
+    user = api_user(request, "officer", "admin")
+    if not can_see_dept(user, dept):
+        raise HTTPException(403, "Not your department")
+    d, ticket = await dept_call("GET", dept, f"/tickets/{ticket_id}")
+    complaint = None
+    if ticket.get("complaint_ref"):
+        try:
+            stored = await _orch(f"/complaints/{ticket['complaint_ref']}")
+            s, u = stored.get("structured") or {}, stored.get("unified") or {}
+            complaint = {"complaint_id": ticket["complaint_ref"], "summary": s.get("summary"),
+                         "location": s.get("location"), "urgency": s.get("urgency"),
+                         # the crew needs the exact spot and the citizen's own words
+                         "geo": s.get("geo"), "citizen_text": s.get("citizen_text"),
+                         "issues": s.get("issues") or [], "created_at": u.get("created_at"),
+                         "overall_status": u.get("overall_status"),
+                         "coordination_plan": u.get("coordination_plan") or [],
+                         "departments": u.get("departments") or []}
+        except Exception as e:  # the ticket is still useful without its complaint
+            log.warning("complaint %s for ticket %s: %s", ticket["complaint_ref"], ticket_id, e)
+    return {"department": {k: d[k] for k in ("key", "name", "organisation")},
+            "ticket": ticket, "complaint": complaint}
+
+
+@app.post("/api/complaints/{cid}/tickets/{ticket_id}/feedback")
+async def ticket_feedback(cid: str, ticket_id: str, body: FeedbackIn, request: Request):
+    """The citizen who filed the complaint confirms a department's fix or reopens it."""
+    user = api_user(request, "citizen")
+    cid = cid.upper()
+    if auth.owner_of(cid) != user["id"]:
+        raise HTTPException(403, "Not your complaint")
+    try:
+        unified = (await _orch(f"/complaints/{cid}")).get("unified") or {}
+    except httpx.HTTPError:
+        raise HTTPException(503, "The Orchestrator agent is not reachable") from None
+    dept = next((d["department"] for d in unified.get("departments") or []
+                 if d.get("ticket_id") == ticket_id), None)
+    if not dept:
+        raise HTTPException(404, f"Ticket {ticket_id} is not part of complaint {cid}")
+    _, ticket = await dept_call("POST", dept, f"/tickets/{ticket_id}/citizen",
+                                {"action": body.action, "note": body.note})
+    return ticket
+
+
+# ------------------------------ accounts (admin) & own password ------------------------------
+class NewOfficerIn(BaseModel):
+    username: str
+    display_name: str
+    department: str
+    password: str
+
+
+class UserPatchIn(BaseModel):
+    active: bool | None = None
+    password: str | None = None   # admin sets a new password (e.g. the officer forgot theirs)
+
+
+class PasswordIn(BaseModel):
+    current: str
+    new: str
+
+
+@app.get("/api/admin/users")
+def admin_users(request: Request):
+    api_user(request, "admin")
+    return auth.list_users()
+
+
+@app.post("/api/admin/users")
+async def admin_create_officer(body: NewOfficerIn, request: Request):
+    """One account per officer, so every update on a ticket shows who made it."""
+    api_user(request, "admin")
+    if not await find_department(body.department):
+        raise HTTPException(400, f"No department '{body.department}' was found through the Agent Cards")
+    if not body.display_name.strip():
+        raise HTTPException(400, "Enter the officer's name")
+    if len(body.password) < 8:
+        raise HTTPException(400, "Use at least 8 characters for the password")
+    try:
+        return auth.create_user(body.username, body.password, "officer", body.department,
+                                body.display_name.strip())
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from None
+
+
+@app.patch("/api/admin/users/{user_id}")
+def admin_update_user(user_id: int, body: UserPatchIn, request: Request):
+    me_ = api_user(request, "admin")
+    target = auth.get_user(user_id)
+    if not target:
+        raise HTTPException(404, "No such account")
+    if body.active is False and (target["id"] == me_["id"] or target["role"] == "admin"):
+        raise HTTPException(400, "Admin accounts can't be switched off here")
+    if body.password is not None:
+        try:
+            auth.set_password(user_id, body.password)
+        except ValueError as e:
+            raise HTTPException(400, str(e)) from None
+    if body.active is not None:
+        target = auth.set_active(user_id, body.active)
+    return target
+
+
+@app.post("/api/me/password")
+def change_my_password(body: PasswordIn, request: Request):
+    user = api_user(request)
+    try:
+        auth.change_password(user["id"], body.current, body.new)
+    except PermissionError as e:
+        raise HTTPException(400, str(e)) from None
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from None
+    return {"ok": True}
+
+
+@app.get("/api/admin/performance")
+async def admin_performance(request: Request):
+    """How each department and officer is doing, plus complaint-level figures."""
+    api_user(request, "admin")
+    depts = await departments()
+    stats = await asyncio.gather(*(dept_call("GET", d["key"], "/stats") for d in depts),
+                                 return_exceptions=True)
+    rows = []
+    for d, s in zip(depts, stats):
+        rows.append({**s[1], "key": d["key"], "online": True} if isinstance(s, tuple)
+                    else {"key": d["key"], "name": d.get("organisation") or d.get("name"), "online": False})
+    try:
+        complaints = await _orch("/complaints")
+    except Exception:
+        complaints = []
+    by_status: dict[str, int] = {}
+    for c in complaints:
+        by_status[c.get("overall_status") or "UNKNOWN"] = by_status.get(c.get("overall_status") or "UNKNOWN", 0) + 1
+    accounts = {u["display_name"]: u for u in auth.list_users() if u["role"] == "officer"}
+    officers = [{**o, "department": r["key"], "username": (accounts.get(o["name"]) or {}).get("username"),
+                 "active": (accounts.get(o["name"]) or {}).get("active")}
+                for r in rows if r.get("online") for o in r.get("officers", [])]
+    return {"departments": rows, "officers": sorted(officers, key=lambda o: -o["updates"]),
+            "complaints": {"total": len(complaints), "by_status": by_status,
+                           "multi_department": sum(bool(c.get("composite")) for c in complaints)}}
+
+
+@app.get("/api/sla")
+async def sla_summary(request: Request):
+    """Admin: per department, how many tickets are open, overdue or due soon, and how often
+    the department fixed things on time."""
+    api_user(request, "admin")
+
+    async def one(d: dict):
+        _, tickets = await dept_call("GET", d["key"], "/tickets")
+        own = [t for t in tickets if not t.get("duplicate_of")]  # linked reports count once
+        states = [(t.get("sla") or {}).get("state") for t in own]
+        met, missed = states.count("met"), states.count("missed")
+        return {"key": d["key"], "name": d.get("name"), "online": True,
+                "open": sum(t["ticket_status"] not in ("RESOLVED", "CLOSED") for t in own),
+                "overdue": states.count("overdue"), "due_soon": states.count("due_soon"),
+                "awaiting_confirmation": sum(t["ticket_status"] == "RESOLVED" for t in own),
+                "fixed": met + missed,
+                "on_time_pct": round(100 * met / (met + missed)) if met + missed else None}
+
+    depts = await departments()
+    out = await asyncio.gather(*(one(d) for d in depts), return_exceptions=True)
+    return [r if isinstance(r, dict) else {"key": d["key"], "name": d.get("name"), "online": False}
+            for d, r in zip(depts, out)]
+
+
+async def department_updates(unified: dict | None) -> list[dict]:
+    """The history of every department ticket on a complaint, oldest first, for the citizen.
+    Officer names are left out; the citizen sees which department did what."""
+    deps = [d for d in (unified or {}).get("departments") or [] if d.get("ticket_id")]
+
+    async def one(d: dict):
+        _, events = await dept_call("GET", d["department"], f"/tickets/{d['ticket_id']}/events")
+        return [{"department": d["department"], "department_name": d.get("department_name"),
+                 "ticket_id": d["ticket_id"], "ts": e["ts"], "kind": e["kind"],
+                 "status": e.get("status"), "note": e.get("note") if e["kind"] != "created" else None}
+                for e in events]
+
+    out = []
+    for r in await asyncio.gather(*(one(d) for d in deps), return_exceptions=True):
+        if isinstance(r, list):  # a department that is down just has no updates to show
+            out += r
+    return sorted(out, key=lambda e: e["ts"] or "")
 
 
 # ---- A2A interface: lets other agents talk to the concierge (no login) ----

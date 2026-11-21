@@ -18,8 +18,11 @@ talk to any other A2A-compliant agent.
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
+import sqlite3
 import uuid
+from pathlib import Path
 from datetime import datetime, timezone
 from typing import Any, Awaitable, Callable, Optional
 
@@ -130,11 +133,36 @@ def get_text(message_or_artifact: dict) -> str:
 
 
 # --------------------------------------------------------------------------
-# Server side: in-memory task store + JSON-RPC router
+# Server side: task store + JSON-RPC router
 # --------------------------------------------------------------------------
 class TaskStore:
-    def __init__(self):
+    """Tasks in memory, optionally also saved to SQLite so tasks/get keeps working after the
+    agent restarts (otherwise every complaint filed before a restart would lose its live status)."""
+
+    def __init__(self, path: Path | str | None = None):
         self.tasks: dict[str, dict] = {}
+        self.path = Path(path) if path else None
+        if self.path:
+            with self._db() as c:
+                c.execute("CREATE TABLE IF NOT EXISTS a2a_tasks(id TEXT PRIMARY KEY, task TEXT)")
+
+    def _db(self):
+        return sqlite3.connect(self.path)
+
+    def _save(self, task: dict) -> None:
+        if self.path:
+            with self._db() as c:
+                c.execute("INSERT OR REPLACE INTO a2a_tasks VALUES(?,?)", (task["id"], json.dumps(task)))
+
+    def get(self, task_id: str | None) -> dict | None:
+        if not task_id:
+            return None
+        if task_id not in self.tasks and self.path:
+            with self._db() as c:
+                row = c.execute("SELECT task FROM a2a_tasks WHERE id=?", (task_id,)).fetchone()
+            if row:
+                self.tasks[task_id] = json.loads(row[0])
+        return self.tasks.get(task_id)
 
     def create(self, message: dict) -> dict:
         task_id = new_id("task-")
@@ -148,19 +176,23 @@ class TaskStore:
             "metadata": {"stateHistory": [{"state": "submitted", "timestamp": now_iso()}]},
         }
         self.tasks[task_id] = task
+        self._save(task)
         return task
 
     def set_state(self, task_id: str, state: str, note: str | None = None) -> dict:
-        task = self.tasks[task_id]
+        task = self.get(task_id)
         task["status"] = {"state": state, "timestamp": now_iso()}
         if note:
             task["status"]["message"] = make_message([text_part(note)], role="agent",
                                                      context_id=task["contextId"], task_id=task_id)
         task["metadata"]["stateHistory"].append({"state": state, "timestamp": now_iso()})
+        self._save(task)
         return task
 
     def add_artifact(self, task_id: str, artifact: dict) -> None:
-        self.tasks[task_id]["artifacts"].append(artifact)
+        task = self.get(task_id)
+        task["artifacts"].append(artifact)
+        self._save(task)
 
 
 # A handler receives (task, store) and is responsible for moving the task to a
@@ -171,9 +203,11 @@ RefreshHandler = Callable[[dict, TaskStore], Awaitable[None]]
 
 
 def mount_a2a(app: FastAPI, card: AgentCard, handler: TaskHandler,
-              refresh: RefreshHandler | None = None, blocking_default: bool = False) -> TaskStore:
-    """Attach A2A endpoints (agent card + JSON-RPC) to a FastAPI app."""
-    store = TaskStore()
+              refresh: RefreshHandler | None = None, blocking_default: bool = False,
+              store_path: Path | str | None = None) -> TaskStore:
+    """Attach A2A endpoints (agent card + JSON-RPC) to a FastAPI app. With `store_path`,
+    tasks are also kept in that SQLite file and survive a restart."""
+    store = TaskStore(store_path)
     app.state.a2a_store = store
 
     @app.get("/.well-known/agent-card.json")
@@ -214,7 +248,7 @@ def mount_a2a(app: FastAPI, card: AgentCard, handler: TaskHandler,
             return rpc_result(req_id, task)
 
         if method == "tasks/get":
-            task = store.tasks.get(params.get("id"))
+            task = store.get(params.get("id"))
             if not task:
                 return rpc_error(req_id, TASK_NOT_FOUND, "Task not found")
             if refresh and task["status"]["state"] == "completed":
@@ -222,7 +256,7 @@ def mount_a2a(app: FastAPI, card: AgentCard, handler: TaskHandler,
             return rpc_result(req_id, task)
 
         if method == "tasks/cancel":
-            task = store.tasks.get(params.get("id"))
+            task = store.get(params.get("id"))
             if not task:
                 return rpc_error(req_id, TASK_NOT_FOUND, "Task not found")
             if task["status"]["state"] in TERMINAL_STATES:

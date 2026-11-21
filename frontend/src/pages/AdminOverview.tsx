@@ -14,7 +14,10 @@ export default function AdminOverview() {
   const nav = useNavigate();
   const all = useAsync(api.allComplaints, []);
   const depts = useAsync(api.departments, []);
-  useInterval(() => all.reload(true), 15000);
+  const sla = useAsync(api.sla, []);
+  useInterval(() => { all.reload(true); sla.reload(true); }, 15000);
+  const slaOf = (key: string) => sla.data?.find(r => r.key === key);
+  const overdueTotal = (sla.data ?? []).reduce((s, r) => s + (r.overdue ?? 0), 0);
   const [q, setQ] = useState('');
   const [f, setF] = useState('');
   const list = all.data ?? [];
@@ -31,16 +34,29 @@ export default function AdminOverview() {
         <div className="ns-stat"><span className="v tabnum">{all.data ? list.length : '–'}</span><span className="k">Complaints</span></div>
         <div className="ns-stat"><span className="v tabnum">{all.data ? n('REGISTERED') + n('IN_PROGRESS') : '–'}</span><span className="k">Open</span></div>
         <div className="ns-stat"><span className="v tabnum">{all.data ? n('RESOLVED') : '–'}</span><span className="k">Resolved</span></div>
-        <div className="ns-stat"><span className="v tabnum">{all.data ? (list.length ? Math.round((list.filter(c => c.composite).length / list.length) * 100) + '%' : '0%') : '–'}</span><span className="k">Needed two or more departments</span></div>
+        <div className="ns-stat"><span className="v tabnum" style={overdueTotal ? { color: 'var(--red-ink)' } : undefined}>{sla.data ? overdueTotal : '–'}</span><span className="k">Tickets past the deadline</span></div>
       </div>
 
       <div className="section">
         <div className="section-h"><h2>Departments</h2></div>
         <div className="quick" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
-          {(depts.data ?? []).map(d => { const I = deptIcon(d.key); return (
-            <a key={d.key} href={`/dept/${d.key}`} onClick={e => { e.preventDefault(); nav(`/dept/${d.key}`); }}>
-              <I aria-hidden="true" /><div><b>{deptName(d.key, d.name?.replace(/ Agent$/, ''))}</b><span><Status tone={d.online ? 'done' : 'error'}>{d.online ? 'Agent online' : 'Agent offline'}</Status></span></div>
-            </a>); })}
+          {(depts.data ?? []).map(d => {
+            const I = deptIcon(d.key);
+            const s = slaOf(d.key);
+            const line = s?.online ? [
+              `${s.open ?? 0} open`,
+              ...(s.overdue ? [`${s.overdue} past deadline`] : []),
+              ...(s.due_soon ? [`${s.due_soon} due soon`] : []),
+              s.on_time_pct != null ? `${s.on_time_pct}% fixed on time` : 'nothing fixed yet',
+            ].join(' · ') : null;
+            return (
+              <a key={d.key} href={`/dept/${d.key}`} onClick={e => { e.preventDefault(); nav(`/dept/${d.key}`); }}>
+                <I aria-hidden="true" /><div><b>{deptName(d.key, d.name?.replace(/ Agent$/, ''))}</b>
+                  <span><Status tone={!d.online ? 'error' : s?.overdue ? 'error' : s?.due_soon ? 'pending' : 'done'}>{!d.online ? 'Agent offline' : s?.overdue ? 'Behind on deadlines' : s?.due_soon ? 'Deadlines coming up' : 'On track'}</Status></span>
+                  {line && <span className="ns-footnote" style={{ display: 'block', marginTop: 4 }}>{line}</span>}
+                  {!!s?.awaiting_confirmation && <span className="ns-footnote" style={{ display: 'block' }}>{s.awaiting_confirmation} waiting for citizens to confirm</span>}
+                </div>
+              </a>); })}
         </div>
       </div>
 

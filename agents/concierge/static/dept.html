@@ -159,10 +159,15 @@ function render(){
 }
 
 async function update(sel){
+  let note=null;
+  if(sel.value==='RESOLVED'){  // the department agent requires a note the citizen can read
+    note=prompt('What was done? The citizen sees this note.');
+    if(!note||!note.trim()){await load();return;}
+  }
   sel.classList.add('saving');sel.disabled=true;
   try{
     await api(`/api/dept/${encodeURIComponent(DEPT)}/tickets/${encodeURIComponent(sel.dataset.id)}`,
-      {method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:sel.value})});
+      {method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:sel.value,note})});
     flash(`${sel.dataset.id} set to ${sel.value}. The citizen's combined status updates on their next refresh.`,'ok');
   }catch(e){flash('Update failed: '+e.message,'bad');}
   await load();

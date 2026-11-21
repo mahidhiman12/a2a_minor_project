@@ -70,6 +70,10 @@ NOMINATIM_EMAIL = os.getenv("NOMINATIM_EMAIL", "")  # optional contact, asked fo
 # submitted -> working -> completed transitions are visible.
 DEPT_DELAY = float(os.getenv("DEPT_DELAY", "0.6"))
 
+# A RESOLVED ticket waits this long for the citizen to confirm the fix or reopen it,
+# then closes on its own.
+AUTO_CLOSE_DAYS = float(os.getenv("AUTO_CLOSE_DAYS", "3"))
+
 # ---- Login & roles (Citizen Concierge) --------------------------------------
 # Demo-grade auth: change these in .env for anything beyond a local demo.
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-only-change-me")          # signs the session cookie

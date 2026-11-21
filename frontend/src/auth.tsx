@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { api, onUnauthorized } from './api/client';
+import { api, onUnauthorized, tabSession } from './api/client';
 import type { Role, User } from './api/types';
 import { Landmark } from 'lucide-react';
 
@@ -27,13 +27,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.me().then(setUser).catch(() => setUser(null)).finally(() => setLoading(false));
+    api.me()
+      .then(({ token, ...u }) => { if (token) tabSession.set(token); setUser(u); }) // pin this tab to its account
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
     return onUnauthorized(() => setUser(null)); // session expired: guards send the user to /login
   }, []);
 
-  const login = useCallback(async (u: string, p: string) => { const r = await api.login(u, p); setUser(r.user); return r.user; }, []);
-  const register = useCallback(async (u: string, p: string, n?: string) => { const r = await api.register(u, p, n); setUser(r.user); return r.user; }, []);
-  const logout = useCallback(async () => { try { await api.logout(); } finally { setUser(null); } }, []);
+  // Signing in or out only affects this tab (per-tab sign-in, see api/client.ts).
+  const login = useCallback(async (u: string, p: string) => { const r = await api.login(u, p); tabSession.set(r.token); setUser(r.user); return r.user; }, []);
+  const register = useCallback(async (u: string, p: string, n?: string) => { const r = await api.register(u, p, n); tabSession.set(r.token); setUser(r.user); return r.user; }, []);
+  const logout = useCallback(async () => { try { await api.logout(); } finally { tabSession.signOut(); setUser(null); } }, []);
 
   const value = useMemo(() => ({ user, loading, login, register, logout }), [user, loading, login, register, logout]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

@@ -96,9 +96,12 @@ def render_status(u: dict, new: bool = True) -> str:
                          f"{d['ticket_status'].replace('_', ' ').lower()}, {d['crew']}, "
                          f"expected by {_fmt_time(d['eta'])}")
         else:
-            lines.append(f"- {d['agent']}: could not register ({d.get('error') or d['a2a_task_state']})")
+            # the technical reason stays in the audit trail; the citizen gets plain words
+            lines.append(f"- **{d.get('department_name') or d['agent']}** couldn't register this "
+                         "right now. Please try again a little later.")
     for i in u.get("unroutable_issues", []):
-        lines.append(f"- No department agent is available for '{i['issue_type']}' right now.")
+        lines.append(f"- No department here handles "
+                     f"\"{i['issue_type'].replace('_', ' ')}\" yet, so this part wasn't sent anywhere.")
     if u.get("coordination_plan") and new:
         lines.append("\nHow the departments will coordinate:")
         lines += [f"  {p}" for p in u["coordination_plan"]]
@@ -119,11 +122,56 @@ class Session:
     def __init__(self):
         self.pending: dict | None = None   # complaint waiting for more info
         self.last_complaint: str | None = None
+        self.draft: dict | None = None     # understood complaint waiting for the citizen's OK
 
 
-async def handle_message(text: str, session: Session, mode: str | None = None) -> dict:
-    """Returns {"reply": str, "structured": dict|None, "unified": dict|None, "state": str}"""
+YES_RX = re.compile(r"(yes|y|yeah|yep|ok|okay|haan|han|ha|ji|haan ji|sure|confirm|file it|go ahead|"
+                    r"theek hai|thik hai|sahi hai)\W*", re.I)
+CANCEL_RX = re.compile(r"(no|nahi|nahin|cancel|stop|don'?t file|mat karo)\W*", re.I)
+# Delhi NCT, roughly: a dropped map pin must be inside it
+DELHI_BOUNDS = (28.40, 28.89, 76.83, 77.35)
+
+
+def confirm_text(s: dict) -> str:
+    issues = "\n".join(f"- {i['issue_type'].replace('_', ' ').capitalize()}"
+                       + (f" ({i['department']})" if i.get("department") else "") for i in s["issues"])
+    return (f"Here's what I'll file:\n{issues}\n- Place: **{s['location']}**\n"
+            f"- Urgency: {s.get('urgency', 'normal')}\n\n"
+            "Shall I file it? Reply **yes**, check the spot on the map, or tell me what to change.")
+
+
+async def file_draft(session: Session, pin: tuple[float, float] | None = None) -> dict:
+    """File the complaint the citizen just confirmed (optionally at the exact spot they
+    marked on the map) and return the unified status."""
+    s, session.draft = session.draft, None
+    if pin:
+        lat, lng = pin
+        s["geo"] = {**(s.get("geo") or {}), "lat": lat, "lng": lng,
+                    "name": (s.get("geo") or {}).get("name") or s["location"], "pinned": True}
+    unified = await call_orchestrator(s)
+    session.last_complaint = unified["complaint_id"]
+    return {"reply": render_status(unified), "structured": s, "unified": unified, "state": "completed"}
+
+
+async def handle_message(text: str, session: Session, mode: str | None = None,
+                         confirm: bool = False) -> dict:
+    """Returns {"reply": str, "structured": dict|None, "unified": dict|None, "state": str}.
+    With confirm=True (the website) a complete complaint is first shown back to the citizen
+    (state "confirm") and only filed after they say yes; other agents get it filed directly."""
     text = text.strip()
+
+    # ---- answer to "Shall I file it?" ----
+    correcting = False
+    if session.draft:
+        if YES_RX.fullmatch(text):
+            return await file_draft(session)
+        if CANCEL_RX.fullmatch(text):
+            session.draft = session.pending = None
+            return {"reply": "Okay, I haven't filed anything. Describe the problem again whenever "
+                             "you're ready.", "state": "idle"}
+        # anything else corrects the draft: read it together with what they said before
+        session.pending = {"text": session.draft.get("citizen_text") or ""}
+        session.draft, correcting = None, True
 
     # ---- status queries ----
     m = COMPLAINT_ID_RX.search(text)
@@ -151,6 +199,8 @@ async def handle_message(text: str, session: Session, mode: str | None = None) -
     # it is a place the NLU has never seen ("rajouri garden"). Geocoding checks it below.
     if session.pending and session.pending.get("need") == "location":
         s["location"] = extract_location(text)[0] or _clean_place(text) or s["location"]
+    elif correcting and extract_location(text)[0]:  # "no, it's in Rohini": the new place wins
+        s["location"] = extract_location(text)[0]
 
     if not s["issues"]:
         depts = [d for d, rx in DEPT_WORDS.items() if re.search(rx, combined, re.I)]
@@ -192,6 +242,9 @@ async def handle_message(text: str, session: Session, mode: str | None = None) -
 
     session.pending = None
     s["citizen_text"] = combined
+    if confirm:
+        session.draft = s
+        return {"reply": confirm_text(s), "structured": s, "state": "confirm"}
     unified = await call_orchestrator(s)
     session.last_complaint = unified["complaint_id"]
     return {"reply": render_status(unified), "structured": s, "unified": unified,

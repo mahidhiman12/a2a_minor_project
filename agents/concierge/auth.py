@@ -54,6 +54,10 @@ def init_db():
             user_id INTEGER NOT NULL REFERENCES users(id),
             created_at TEXT NOT NULL);
         """)
+        # migration: accounts can be switched off (e.g. an officer who left) without deleting
+        # them, so their name stays on the tickets they worked on
+        if "active" not in [r[1] for r in c.execute("PRAGMA table_info(users)")]:
+            c.execute("ALTER TABLE users ADD COLUMN active INTEGER NOT NULL DEFAULT 1")
 
 
 # ------------------------------ passwords ------------------------------
@@ -83,7 +87,8 @@ def public(row: sqlite3.Row | None) -> dict | None:
     if row is None:
         return None
     return {"id": row["id"], "username": row["username"], "role": row["role"],
-            "department": row["department"], "display_name": row["display_name"]}
+            "department": row["department"], "display_name": row["display_name"],
+            "active": bool(row["active"])}
 
 
 def get_user(user_id) -> dict | None:
@@ -123,7 +128,36 @@ def authenticate(username: str, password: str) -> dict | None:
     if row is None:
         verify_password(password or "", _DUMMY_HASH)  # same cost whether or not the user exists
         return None
-    return public(row) if verify_password(password or "", row["password_hash"]) else None
+    ok = verify_password(password or "", row["password_hash"])
+    return public(row) if ok and row["active"] else None  # switched-off accounts can't sign in
+
+
+def list_users() -> list[dict]:
+    with db() as c:
+        rows = c.execute("SELECT * FROM users ORDER BY role, department, username").fetchall()
+    return [{**public(r), "created_at": r["created_at"]} for r in rows]
+
+
+def set_active(user_id: int, active: bool) -> dict | None:
+    """Switching an account off also ends its sessions (read_session checks `active`)."""
+    with db() as c:
+        c.execute("UPDATE users SET active=? WHERE id=?", (int(active), user_id))
+    return get_user(user_id)
+
+
+def set_password(user_id: int, password: str) -> None:
+    if len(password or "") < 8:
+        raise ValueError("Use at least 8 characters for the password")
+    with db() as c:
+        c.execute("UPDATE users SET password_hash=? WHERE id=?", (hash_password(password), user_id))
+
+
+def change_password(user_id: int, current: str, new: str) -> None:
+    with db() as c:
+        row = c.execute("SELECT password_hash FROM users WHERE id=?", (user_id,)).fetchone()
+    if not row or not verify_password(current or "", row["password_hash"]):
+        raise PermissionError("Your current password is wrong")
+    set_password(user_id, new)
 
 
 def user_exists(username: str) -> bool:
@@ -173,7 +207,8 @@ def read_session(token: str | None) -> dict | None:
         data = _signer.loads(token, max_age=int(config.SESSION_HOURS * 3600))
     except (BadSignature, SignatureExpired):
         return None
-    return get_user(data.get("uid")) if isinstance(data, dict) else None
+    user = get_user(data.get("uid")) if isinstance(data, dict) else None
+    return user if user and user["active"] else None
 
 
 def home_for(user: dict) -> str:

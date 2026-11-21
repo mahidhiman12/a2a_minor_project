@@ -191,8 +191,15 @@ def build_graph():
 # Unified status artifact
 # --------------------------------------------------------------------------
 def citizen_status(ticket_statuses: list[str]) -> str:
+    # a TRANSFERRED ticket was replaced by the other department's ticket; a REJECTED one
+    # needs no more work, so the complaint follows the tickets still being worked on
+    ticket_statuses = [s for s in ticket_statuses if s != "TRANSFERRED"]
     if not ticket_statuses:
         return "NOT_ROUTED"
+    live = [s for s in ticket_statuses if s != "REJECTED"]
+    if not live:
+        return "REJECTED"
+    ticket_statuses = live
     if all(s in ("RESOLVED", "CLOSED") for s in ticket_statuses):
         return "RESOLVED"
     if any(s in ("IN_PROGRESS", "RESOLVED", "CLOSED") for s in ticket_statuses):
@@ -228,11 +235,15 @@ def build_unified(complaint: dict, results: list[dict], unroutable: list[dict]) 
             "priority": res.get("priority"), "ticket_status": res.get("ticket_status"),
             "assigned_office": res.get("assigned_office"), "crew": res.get("crew"),
             "eta": res.get("eta"), "duplicate_of": res.get("duplicate_of"),
+            "resolved_at": res.get("resolved_at"), "auto_close_at": res.get("auto_close_at"),
+            "awaiting_citizen": bool(res.get("awaiting_citizen")),
+            "transferred_to": r.get("transferred_to"),
             "error": r.get("error") or (r.get("reason") if r.get("state") != "completed" else None),
         })
     ok = [d for d in depts if d["a2a_task_state"] == "completed"]
-    etas = [d["eta"] for d in ok if d.get("eta")]
-    prios = [d["priority"] for d in ok if d.get("priority") in PRIORITY_ORDER]
+    active = [d for d in ok if d.get("ticket_status") not in ("REJECTED", "TRANSFERRED")]
+    etas = [d["eta"] for d in active if d.get("eta")]
+    prios = [d["priority"] for d in active if d.get("priority") in PRIORITY_ORDER]
     return {
         "complaint_id": complaint["complaint_id"],
         "summary": complaint.get("summary"),
@@ -244,6 +255,6 @@ def build_unified(complaint: dict, results: list[dict], unroutable: list[dict]) 
         "overall_eta": max(etas) if etas else None,
         "departments": depts,
         "unroutable_issues": unroutable,
-        "coordination_plan": coordination_plan(ok),
+        "coordination_plan": coordination_plan(active),
         "updated_at": now_iso(),
     }

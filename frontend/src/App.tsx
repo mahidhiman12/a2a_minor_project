@@ -13,11 +13,15 @@ import Settings from './pages/Settings';
 import DeptQueue from './pages/DeptQueue';
 import AdminOverview from './pages/AdminOverview';
 import NotFound from './pages/NotFound';
+import Technology from './pages/Technology';
+import DeptTicket from './pages/DeptTicket';
+import AdminPerformance from './pages/AdminPerformance';
+import AdminPeople from './pages/AdminPeople';
 
 const TITLES: [RegExp, string | ((m: RegExpMatchArray) => string)][] = [
-  [/^\/login/, 'Sign in'], [/^\/home/, 'Home'], [/^\/file/, 'File a complaint'],
+  [/^\/login/, 'Sign in'], [/^\/technology/, 'Technology'], [/^\/home/, 'Home'], [/^\/file/, 'File a complaint'],
   [/^\/complaints\/([^/]+)/, m => decodeURIComponent(m[1]).toUpperCase()], [/^\/complaints/, 'My complaints'],
-  [/^\/agents/, 'Agents'], [/^\/map/, 'Hotspot map'], [/^\/settings/, 'Settings'], [/^\/dept\//, 'Ticket queue'], [/^\/admin/, 'Overview'],
+  [/^\/agents/, 'Agents'], [/^\/map/, 'Hotspot map'], [/^\/settings/, 'Settings'], [/^\/dept\/[^/]+\/tickets\/([^/]+)/, m => decodeURIComponent(m[1])], [/^\/dept\//, 'Ticket queue'], [/^\/admin\/performance/, 'Performance'], [/^\/admin\/people/, 'People'], [/^\/admin/, 'Overview'],
 ];
 
 /** Document title per route, and scroll to top on navigation (unless jumping to an anchor). */
@@ -42,6 +46,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/technology" element={<Technology />} />
       <Route path="/home" element={<RequireRole roles={['citizen']}><Home /></RequireRole>} />
       <Route path="/file" element={<RequireRole roles={['citizen']}><FileComplaint /></RequireRole>} />
       <Route path="/complaints" element={<RequireRole roles={['citizen']}><MyComplaints /></RequireRole>} />
@@ -50,7 +55,10 @@ export default function App() {
       <Route path="/map" element={<RequireRole roles={ALL}><MapPage /></RequireRole>} />
       <Route path="/settings" element={<RequireRole roles={ALL}><Settings /></RequireRole>} />
       <Route path="/dept/:dept" element={<RequireRole roles={['officer', 'admin']}><DeptQueue /></RequireRole>} />
+      <Route path="/dept/:dept/tickets/:ticketId" element={<RequireRole roles={['officer', 'admin']}><DeptTicket /></RequireRole>} />
       <Route path="/admin" element={<RequireRole roles={['admin']}><AdminOverview /></RequireRole>} />
+      <Route path="/admin/performance" element={<RequireRole roles={['admin']}><AdminPerformance /></RequireRole>} />
+      <Route path="/admin/people" element={<RequireRole roles={['admin']}><AdminPeople /></RequireRole>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

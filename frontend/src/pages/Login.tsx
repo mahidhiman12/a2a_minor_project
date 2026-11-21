@@ -19,9 +19,30 @@ export default function Login() {
   const [f, setF] = useState({ name: '', username: '', password: '' });
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
+  // Per-tab sign-in: an already signed-in tab can switch to another account (e.g. citizen in
+  // one tab, officer in the next) without affecting the other tabs.
+  const [another, setAnother] = useState(params.get('switch') === '1');
 
   if (loading) return <Splash />;
-  if (user && !busy) return <Navigate to={next && user.role !== 'officer' ? next : homeFor(user)} replace />;
+  if (user && !busy && !another && next) return <Navigate to={user.role !== 'officer' ? next : homeFor(user)} replace />;
+  if (user && !busy && !another) {
+    return (
+      <PublicPage links={false}>
+        <main className="auth page-enter">
+          <div className="box">
+            <h1 className="ns-title">You’re signed in</h1>
+            <p className="ns-lead sub" style={{ fontSize: 17 }}>This tab is signed in as <b>{user.display_name}</b> ({user.role === 'officer' ? `${user.department} officer` : user.role}).</p>
+            <div style={{ display: 'grid', gap: 10, marginTop: 28 }}>
+              <button className="ns-btn ns-btn-primary ns-btn-lg" type="button" onClick={() => nav(homeFor(user), { replace: true })}>Continue as {user.display_name}</button>
+              <button className="ns-btn ns-btn-secondary ns-btn-lg" type="button" onClick={() => setAnother(true)}>Use another account in this tab</button>
+            </div>
+            <p className="ns-footnote" style={{ marginTop: 16, textAlign: 'center' }}>Each tab can be signed in as a different person, so you can keep a citizen and an officer open side by side. Other tabs stay as they are.</p>
+            <p className="switch"><Link to="/" className="link">Back to home</Link></p>
+          </div>
+        </main>
+      </PublicPage>
+    );
+  }
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -44,6 +65,7 @@ export default function Login() {
         <div className="box">
           <h1 className="ns-title">{mode === 'in' ? 'Sign in' : 'Create your account'}</h1>
           <p className="ns-lead sub" style={{ fontSize: 17 }}>{mode === 'in' ? 'Citizens, department officers and administrators.' : 'Citizen accounts only. Officers get theirs from their department.'}</p>
+          {user && <p className="ns-footnote" style={{ textAlign: 'center', marginTop: 8 }}>Signing in here switches only this tab. {user.display_name} stays signed in in your other tabs.</p>}
           <div style={{ display: 'flex', justifyContent: 'center', marginTop: 24 }}>
             <Segmented label="Account" value={mode} onChange={m => { setMode(m); setErr(''); }} options={[{ value: 'in', label: 'Sign in' }, { value: 'up', label: 'Create account' }]} />
           </div>

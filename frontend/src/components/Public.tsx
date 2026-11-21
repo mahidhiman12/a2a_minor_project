@@ -23,9 +23,9 @@ export function PublicNav({ links = true }: { links?: boolean }) {
         <Link className="pb-logo" to="/"><Landmark aria-hidden="true" />Nagrik Sahayak</Link>
         {links && <nav className="pb-links" aria-label="Main">
           <a href="/#how" onClick={e => { e.preventDefault(); go('/#how'); }}>How it works</a>
-          <a href="/#departments" onClick={e => { e.preventDefault(); go('/#departments'); }}>Departments</a>
+          <a href="/#departments" onClick={e => { e.preventDefault(); go('/#departments'); }}>What you can report</a>
           <a href="/#track" onClick={e => { e.preventDefault(); go('/#track'); }}>Track a complaint</a>
-          <a href="/#agents" onClick={e => { e.preventDefault(); go('/#agents'); }}>About</a>
+          <a href="/technology" onClick={e => { e.preventDefault(); go('/technology'); }}>Technology</a>
         </nav>}
         <div className="right" style={links ? undefined : { marginLeft: 'auto' }}>
           {user
@@ -40,9 +40,10 @@ export function PublicNav({ links = true }: { links?: boolean }) {
             <button type="button" className="icon-btn" aria-label="Close menu" onClick={() => setOpen(false)}><X /></button></div>
           <nav>
             <a href="/#how" onClick={e => { e.preventDefault(); go('/#how'); }}>How it works</a>
-            <a href="/#departments" onClick={e => { e.preventDefault(); go('/#departments'); }}>Departments</a>
+            <a href="/#departments" onClick={e => { e.preventDefault(); go('/#departments'); }}>What you can report</a>
             <a href="/#track" onClick={e => { e.preventDefault(); go('/#track'); }}>Track a complaint</a>
-            <a href="/#agents" onClick={e => { e.preventDefault(); go('/#agents'); }}>About</a>
+            <a href="/#faq" onClick={e => { e.preventDefault(); go('/#faq'); }}>Questions</a>
+            <a href="/technology" onClick={e => { e.preventDefault(); go('/technology'); }}>Technology</a>
           </nav>
           <div className="sub">For department officers<a href="/login" onClick={e => { e.preventDefault(); go('/login'); }}>Sign in to the workspace</a></div>
           <div className="ft">
@@ -60,12 +61,12 @@ export function PublicNav({ links = true }: { links?: boolean }) {
 export function PublicFooter() {
   return (
     <footer className="pb-foot"><div className="wrap">
-      <div className="note">Department agents, tickets and crews are simulated for demonstration. Activity shown on this page is anonymised: issue type, locality and status only.</div>
+      <div className="note">This is a working demonstration: the departments, tickets and crews are simulated. Activity shown on this page is anonymised: issue type, locality and status only.</div>
       <div className="grid">
-        <div><h5>Nagrik Sahayak</h5><ul><li>A multi-department civic grievance system built on the Agent2Agent protocol.</li></ul></div>
-        <div><h5>Citizens</h5><ul><li><Link to="/login?next=/file">File a complaint</Link></li><li><a href="/#track">Track a complaint</a></li><li><a href="/#how">How it works</a></li></ul></div>
-        <div><h5>Departments</h5><ul><li><Link to="/login">Officer sign-in</Link></li><li><a href="/#agents">How agents work</a></li><li><a href="/docs">API reference</a></li></ul></div>
-        <div><h5>Project</h5><ul><li><a href="/#stats">Evaluation</a></li><li><a href="https://github.com/mahidhiman12/a2a_minor_project" target="_blank" rel="noreferrer">Source code</a></li></ul></div>
+        <div><h5>Nagrik Sahayak</h5><ul><li>Report a civic problem once, and follow it until every department involved has fixed it.</li></ul></div>
+        <div><h5>Citizens</h5><ul><li><Link to="/login?next=/file">File a complaint</Link></li><li><a href="/#track">Track a complaint</a></li><li><a href="/#how">How it works</a></li><li><a href="/#faq">Questions</a></li></ul></div>
+        <div><h5>Departments</h5><ul><li><Link to="/login">Officer sign-in</Link></li></ul></div>
+        <div><h5>Technology</h5><ul><li><Link to="/technology">How the agents work</Link></li><li><Link to="/technology#evaluation">Evaluation</Link></li><li><a href="/docs">API reference</a></li><li><a href="https://github.com/mahidhiman12/a2a_minor_project" target="_blank" rel="noreferrer">Source code</a></li></ul></div>
       </div>
       <div className="base"><span>B.Tech IT minor project · ADGIPS, GGSIPU</span><span>Delhi, India</span></div>
     </div></footer>

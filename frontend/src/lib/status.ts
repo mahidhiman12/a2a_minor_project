@@ -6,7 +6,7 @@ export type Tone = 'done' | 'active' | 'pending' | 'error' | 'idle';
 
 const TONES: Record<string, Tone> = {
   // complaint (citizen-facing)
-  REGISTERED: 'pending', IN_PROGRESS: 'active', RESOLVED: 'done', NOT_ROUTED: 'error',
+  REGISTERED: 'pending', IN_PROGRESS: 'active', RESOLVED: 'done', NOT_ROUTED: 'error', REJECTED: 'error', TRANSFERRED: 'idle',
   // ticket
   OPEN: 'pending', ASSIGNED: 'active', CLOSED: 'done',
   // A2A task
@@ -22,6 +22,7 @@ export const toneOf = (value?: string | null): Tone => (value && TONES[value]) |
 export const statusLabel = (value?: string | null) => {
   if (!value) return 'Unknown';
   if (value === 'NOT_ROUTED') return 'Not routed';
+  if (value === 'REJECTED') return 'Not accepted';
   const s = String(value).toLowerCase().replace(/[_-]/g, ' ');
   return s.charAt(0).toUpperCase() + s.slice(1);
 };
@@ -42,6 +43,14 @@ export const deptName = (key?: string | null, fallback?: string | null) => fallb
 /** Short everyday name ("Water Board"), falling back to the agent's own name for unknown departments. */
 export const shortDept = (key?: string | null, fallback?: string | null) => NAMES[String(key || '')] || fallback || titleCase(key);
 export const deptCode = (key?: string | null) => CODES[String(key || '')] || String(key || '').slice(0, 3).toUpperCase();
+
+/** "power_outage" -> the department's own name for it ("Power outage"), else readable text. */
+export const issueLabel = (type?: string | null, departments?: { issue_type?: string; issue_name?: string }[]) => {
+  const named = departments?.find(d => d.issue_type === type && d.issue_name)?.issue_name;
+  if (named) return named;
+  const s = String(type || '').replace(/_/g, ' ').toLowerCase();
+  return s.charAt(0).toUpperCase() + s.slice(1);
+};
 
 export const COMPLAINT_ID_RX = /\bCMP-\d{8}-\d{4}\b/i;
 export const normaliseId = (raw: string) => {

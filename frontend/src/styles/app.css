@@ -274,3 +274,60 @@ button.ns-chip:not(.on):hover { background: var(--fill); }
 }
 .settings .ns-item .t { overflow: visible; white-space: nowrap; }
 .settings .ns-item > :last-child:not(:first-child) { text-align: right; justify-self: end; }
+
+/* Officer ticket page: post an update + history */
+.upd { background: var(--surface); border-radius: var(--radius-lg); padding: 18px 18px 20px; }
+.upd .select { width: 100%; }
+.upd textarea { width: 100%; box-sizing: border-box; min-height: 88px; resize: vertical; border: 1px solid transparent; border-radius: var(--radius-md); background: var(--bg-subtle); padding: 12px 14px; font: inherit; font-size: 16px; line-height: 1.4; color: var(--ink); }
+.upd textarea::placeholder { color: var(--ink-tertiary); }
+.upd textarea:focus { outline: 0; border-color: var(--ink-tertiary); background: var(--surface); }
+.upd textarea[aria-invalid="true"] { border-color: var(--red); }
+.upd .ns-btn { margin-top: 16px; }
+.hist { list-style: none; margin: 0; padding: 0; }
+.hist li { padding: 14px 0; border-top: 0.5px solid var(--separator); }
+.hist li:first-child { border-top: 0; padding-top: 4px; }
+.hist b { font-weight: 600; font-size: 15px; }
+.hist p { margin: 6px 0 2px; font-size: 15px; color: var(--ink-secondary); white-space: pre-wrap; }
+.upd .ns-field { max-width: none; margin-top: 14px; }
+.upd .select { height: 40px; font-size: 15px; }
+
+/* Notices: ticket waiting for the citizen, fixes to confirm */
+.banner { display: block; margin: 0 0 16px; padding: 12px 16px; border-radius: var(--radius-md); background: var(--bg-subtle); font-size: 15px; color: var(--ink-secondary); line-height: 1.45; }
+.banner b { color: var(--ink); font-weight: 600; }
+.banner-link { color: var(--ink-secondary); text-decoration: none; margin-bottom: 24px; }
+.banner-link:hover { background: var(--fill); }
+.banner-link .lucide { width: 16px; height: 16px; vertical-align: -3px; margin-left: 4px; }
+/* Citizen: "Is it fixed?" under a resolved department ticket */
+.fixcheck { margin: -4px 0 16px; padding: 14px 16px 16px; border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--separator); }
+.fixcheck b { font-weight: 600; font-size: 15px; }
+.fixcheck p { margin: 2px 0 0; }
+.fixcheck textarea { width: 100%; box-sizing: border-box; margin-top: 10px; min-height: 76px; resize: vertical; border: 1px solid transparent; border-radius: var(--radius-md); background: var(--bg-subtle); padding: 10px 12px; font: inherit; font-size: 16px; color: var(--ink); }
+.fixcheck textarea:focus { outline: 0; border-color: var(--ink-tertiary); }
+.fixcheck textarea[aria-invalid="true"] { border-color: var(--red); }
+
+/* Officer ticket page: extra actions (collapsible), checkbox, two-up fields, text inputs */
+.act-sec { margin-top: 14px; border-radius: var(--radius-lg); background: var(--surface); }
+.act-sec > summary { cursor: pointer; list-style: none; padding: 14px 18px; font-size: 15px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+.act-sec > summary::-webkit-details-marker { display: none; }
+.act-sec > summary::after { content: '+'; font-weight: 400; font-size: 20px; color: var(--ink-tertiary); }
+.act-sec[open] > summary::after { content: '\2212'; }
+.act-sec > summary:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: var(--radius-lg); }
+.act-sec .upd { padding-top: 0; background: transparent; }
+.upd .check { display: flex; gap: 8px; align-items: center; margin-top: 12px; font-size: 14px; color: var(--ink-secondary); cursor: pointer; }
+.upd .check input { width: 16px; height: 16px; accent-color: var(--ink); }
+.upd .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+.upd input.text { height: 40px; box-sizing: border-box; border: 1px solid transparent; border-radius: var(--radius-md); background: var(--bg-subtle); padding: 0 12px; font: inherit; font-size: 15px; color: var(--ink); width: 100%; }
+.upd input.text:focus { outline: 0; border-color: var(--ink-tertiary); background: var(--surface); }
+@media (max-width: 640px) { .upd .grid2 { grid-template-columns: 1fr; } }
+
+/* Map with one pin (confirm card, ticket page) */
+.pinmap { width: 100%; border-radius: var(--radius-md); overflow: hidden; background: var(--bg-subtle); }
+.pin-icon span { display: block; width: 22px; height: 22px; margin: 2px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: var(--red); border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.35); }
+.leaflet-marker-draggable.pin-icon { cursor: grab; }
+/* Concierge: "Here's what I'll file" card */
+.confirm-card { align-self: stretch; margin: 4px 0 8px; padding: 16px; border-radius: var(--radius-lg); background: var(--surface); border: 1px solid var(--separator); }
+.confirm-card h4 { margin: 0 0 10px; font-size: 15px; font-weight: 600; }
+.confirm-card dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0 0 12px; font-size: 14px; }
+.confirm-card dt { color: var(--ink-secondary); }
+.confirm-card dd { margin: 0; }
+.confirm-card .ns-footnote { margin: 8px 0 0; }

@@ -1,11 +1,12 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import {
-  Bot, ChevronRight, House, Inbox, LayoutGrid, Landmark, List, LogOut, Map as MapIcon, Plus, Settings,
+  BarChart3, Bot, ChevronRight, House, Inbox, LayoutGrid, Landmark, List, LogOut, Map as MapIcon, Plus, Settings, Users,
 } from 'lucide-react';
 import { api } from '../api/client';
 import type { Department } from '../api/types';
 import { useAuth } from '../auth';
+import { useTechView } from '../lib/prefs';
 import { deptIcon, deptName } from '../lib/status';
 import { Avatar } from './ui';
 
@@ -23,15 +24,18 @@ export function AppShell({ crumbs = [], children, wide, bare, actions }: { crumb
   const { user, logout } = useAuth();
   const nav = useNavigate();
   const depts = useDepartments();
+  const tech = useTechView();
   if (!user) return null;
   const role = user.role;
   const main: Item[] = role === 'citizen'
     ? [{ to: '/home', label: 'Home', icon: House }, { to: '/file', label: 'File a complaint', icon: Plus },
        { to: '/complaints', label: 'My complaints', icon: List }]
     : role === 'admin'
-      ? [{ to: '/admin', label: 'Overview', icon: LayoutGrid, end: true }]
+      ? [{ to: '/admin', label: 'Overview', icon: LayoutGrid, end: true }, { to: '/admin/performance', label: 'Performance', icon: BarChart3 },
+         { to: '/admin/people', label: 'People', icon: Users }]
       : [{ to: `/dept/${user.department}`, label: 'Ticket queue', icon: Inbox }];
-  const more: Item[] = [{ to: '/agents', label: 'Agents', icon: Bot }, { to: '/map', label: 'Hotspot map', icon: MapIcon }];
+  // Citizens see the Agent Card directory only with "Show technical details" on.
+  const more: Item[] = [...(tech ? [{ to: '/agents', label: 'Agents', icon: Bot }] : []), { to: '/map', label: 'Hotspot map', icon: MapIcon }];
   const tabs: Item[] = [...main.slice(0, 3), more[0], { to: '/settings', label: 'Settings', icon: Settings }];
   const online = depts?.filter(d => d.online).length;
 
@@ -47,13 +51,13 @@ export function AppShell({ crumbs = [], children, wide, bare, actions }: { crumb
               <I aria-hidden="true" />{deptName(d.key, d.name?.replace(/ Agent$/, ''))}<span className={`ns-status ${d.online ? 'done' : 'error'}`} aria-label={d.online ? 'online' : 'offline'} />
             </NavLink>); })}
         </>}
-        <div className="grp" style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-tertiary)', padding: '16px 10px 6px' }}>System</div>
+        <div className="grp" style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-tertiary)', padding: '16px 10px 6px' }}>{tech ? 'System' : 'More'}</div>
         {more.map(i => <SideLink key={i.to} {...i} />)}
         <SideLink to="/settings" label="Settings" icon={Settings} />
         <div className="side-foot">
-          <span className={`ns-status ${online === undefined ? 'idle' : online ? 'done' : 'error'}`} style={{ fontSize: 12 }}>
+          {tech && <span className={`ns-status ${online === undefined ? 'idle' : online ? 'done' : 'error'}`} style={{ fontSize: 12 }}>
             {online === undefined ? 'Checking agents…' : `${online} department agent${online === 1 ? '' : 's'} online`}
-          </span>
+          </span>}
           <div className="me">
             <Avatar name={user.display_name} />
             <div className="grow"><div className="n ellipsis">{user.display_name}</div>

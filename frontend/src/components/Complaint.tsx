@@ -7,6 +7,13 @@ import { IdChip, PriorityTag, Status } from './ui';
 
 export const firstIssue = (u: UnifiedStatus) => u.departments.find(d => d.issue_name)?.issue_name;
 export const deptsOf = (u: UnifiedStatus) => u.departments.map(d => shortDept(d.department, d.department_name)).join(', ');
+/** Not resolved and the promised date has passed. */
+export const isOverdue = (u: UnifiedStatus) =>
+  u.overall_status !== 'RESOLVED' && !!u.overall_eta && new Date(u.overall_eta).getTime() < Date.now();
+/** A department says it's fixed and is waiting for the citizen to confirm or reopen. */
+export const awaitsConfirmation = (u: UnifiedStatus) => u.departments.some(d => d.ticket_status === 'RESOLVED');
+/** A department asked the citizen something and is waiting for the reply. */
+export const awaitsReply = (u: UnifiedStatus) => u.departments.some(d => d.awaiting_citizen);
 
 /** One complaint as a grouped-list row. */
 export function ComplaintRow({ u, to }: { u: UnifiedStatus; to: string }) {
@@ -19,7 +26,7 @@ export function ComplaintRow({ u, to }: { u: UnifiedStatus; to: string }) {
         <div className="m ellipsis"><span className="mono" style={{ fontSize: 12 }}>{u.complaint_id}</span>{u.location && ` · ${u.location}`}{u.departments.length ? ` · ${deptsOf(u)}` : ''}</div>
       </div>
       <div className="row" style={{ gap: 12 }}>
-        <div className="r" style={{ display: 'flex' }}><Status value={u.overall_status} />{u.updated_at ? when(u.updated_at) : ''}</div>
+        <div className="r" style={{ display: 'flex' }}>{awaitsReply(u) ? <Status tone="pending">Reply needed</Status> : awaitsConfirmation(u) ? <Status tone="pending">Is it fixed?</Status> : isOverdue(u) ? <Status tone="error">Overdue</Status> : <Status value={u.overall_status} />}{u.updated_at ? when(u.updated_at) : ''}</div>
         <ChevronRight className="chev" aria-hidden="true" />
       </div>
     </Link>
@@ -30,6 +37,7 @@ export function Progress({ overall }: { overall?: string }) {
   const i = progressIndex(overall);
   const labels = ['Registered', 'In progress', 'Resolved'];
   if (overall === 'NOT_ROUTED') return <p className="ns-footnote" style={{ marginTop: 20 }}><Status value="NOT_ROUTED" /> No department agent could take this complaint.</p>;
+  if (overall === 'REJECTED') return <p className="ns-footnote" style={{ marginTop: 20 }}><Status value="REJECTED" /> The departments couldn’t take this on. Their reasons are below.</p>;
   return (
     <div className="progress" aria-label={`Progress: ${labels[i]}`}>
       {labels.map((l, k) => <div key={l} className={k < i ? 'on done' : k === i ? (i === 2 ? 'on done' : 'on') : ''}>{l}</div>)}
