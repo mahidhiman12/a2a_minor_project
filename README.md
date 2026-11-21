@@ -320,6 +320,21 @@ a2a_minor_project/
 * **"Wrong username or password" for a demo account**: the accounts were created with the passwords that were in `.env` at the time. Delete `backend/data/db/users.db` and restart.
 * **`sanitation_officer` cannot log in**: that account is only created once the Sanitation agent is running (`python run_all.py --with-sanitation`).
 
+## 12a. Deploy for free (Render)
+
+The whole app runs as **one Docker container** (`Dockerfile`): it builds the website, then starts every agent with `backend/serve_all.py`. That runs all agents in one Python process, each on its own internal port and still talking A2A over HTTP, so it fits the free plan's 512 MB (about 100 MB in use). Only the Concierge (website + API) is public.
+
+1. Push the repo to GitHub.
+2. On https://render.com sign in with GitHub, then **New → Blueprint**, pick this repo. Render reads `render.yaml` and creates the service on the free plan.
+3. Wait for the first build (a few minutes), then open the `https://….onrender.com` address it shows.
+4. The demo passwords are generated randomly: open the service → **Environment** to see `DEMO_ADMIN_PASSWORD`, `DEMO_OFFICER_PASSWORD` and `DEMO_CITIZEN_PASSWORD`.
+
+Every push to the branch redeploys automatically. On the free plan:
+
+* it **sleeps after 15 minutes** without visitors; the next visit takes about a minute to wake it (open it a minute before a demo)
+* the **disk is wiped on every restart or deploy**: complaints, tickets and new accounts disappear, and the demo accounts are recreated
+* 750 free hours a month, which is enough for one service running all month
+
 ## 13. Future scope (from the synopsis)
 
 Multilingual and voice intake, SLA-based automatic escalation (`tasks/get` polling already provides the hook), A2A push notifications instead of polling, OpenTelemetry export of the trail, production-grade authentication (HTTPS, OTP/DigiLocker-style identity, rate limiting, per-agent credentials or mTLS between agents), and integration with real departmental systems.

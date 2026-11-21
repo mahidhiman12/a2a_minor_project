@@ -1,0 +1,17 @@
+# Keep secrets, local data and build output out of the Docker image
+**/.env
+**/.env.*
+!**/.env.example
+backend/data/db
+**/*.db
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+venv
+.venv
+**/node_modules
+frontend/dist
+frontend/.vite
+frontend/tsconfig.tsbuildinfo
+.git
+design

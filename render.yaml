@@ -1,0 +1,32 @@
+# Render Blueprint: render.com -> New -> Blueprint -> pick this GitHub repo.
+# Free plan: 512 MB, sleeps after 15 min without visitors (about a minute to wake up),
+# and the disk is wiped on every restart or deploy (the demo accounts are recreated).
+services:
+  - type: web
+    name: nagrik-sahayak
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /.well-known/agent-card.json
+    autoDeploy: true            # redeploy on every push to the branch
+    envVars:
+      # secrets: Render generates random values; see them under the service's Environment tab
+      - key: SECRET_KEY          # signs the login sessions
+        generateValue: true
+      - key: SERVICE_TOKEN       # lets the Concierge call the department agents
+        generateValue: true
+      - key: DEMO_ADMIN_PASSWORD
+        generateValue: true
+      - key: DEMO_OFFICER_PASSWORD
+        generateValue: true
+      - key: DEMO_CITIZEN_PASSWORD
+        generateValue: true
+      # language engine: rules works offline; for Gemini add GOOGLE_API_KEY in the dashboard
+      - key: NLU_MODE
+        value: rules
+      - key: GOOGLE_API_KEY
+        sync: false
+      # OpenStreetMap asks for a contact address; optional
+      - key: NOMINATIM_EMAIL
+        sync: false
