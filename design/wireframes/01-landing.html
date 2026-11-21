@@ -1,0 +1,734 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>01 Landing page · Nagrik Sahayak wireframes</title>
+<link rel="stylesheet" href="shared/tokens.css?v=2">
+<link rel="stylesheet" href="shared/components.css?v=2">
+<link rel="stylesheet" href="shared/board.css?v=2">
+<link rel="stylesheet" href="shared/public.css?v=2">
+<style>
+/* ===================== HIGH-FIDELITY v2: landing ===================== */
+.lp section { position: relative; }
+.lp .sec { padding: var(--space-30) 0; }
+.lp .sec.subtle { background: var(--bg-subtle); }
+.lp .sec-head { text-align: center; margin-bottom: var(--space-16); }
+.lp .sec-head .ns-eyebrow { display: block; margin-bottom: 10px; }
+.lp .sec-head .ns-lead { max-width: 640px; margin: 20px auto 0; }
+
+/* hero */
+.hero { padding-top: var(--space-20); text-align: center; overflow: hidden; }
+.hero .status { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-secondary); letter-spacing: -0.01em; }
+.hero h1 { margin: 18px auto 0; max-width: 980px; }
+.hero h1 span { color: var(--ink-tertiary); display: block; }
+.hero .ns-lead { max-width: 620px; margin: 24px auto 0; }
+.hero .ctas { display: flex; gap: 14px; justify-content: center; margin-top: 36px; }
+.hero .trust { display: flex; gap: 28px; justify-content: center; margin-top: 28px; font-size: 13px; color: var(--ink-secondary); }
+.hero .trust span { display: inline-flex; gap: 6px; align-items: center; }
+.hero .trust .ns-ico { width: 15px; height: 15px; }
+
+.stage { position: relative; height: 640px; margin: 72px auto 0; max-width: 1180px; }
+.win { position: absolute; left: 0; top: 0; width: 960px; height: 540px; background: var(--surface); border-radius: 14px; box-shadow: var(--shadow-lg); overflow: hidden; text-align: left; }
+.win .bar { height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 16px; border-bottom: 1px solid var(--separator); background: var(--bg-subtle); }
+.win .bar i { width: 12px; height: 12px; border-radius: 50%; background: var(--fill-hover); }
+.win .bar span { margin-left: 16px; font-size: 13px; font-weight: 600; letter-spacing: -0.01em; }
+.win .bar .ns-mono { margin-left: 8px; font-size: 12px; color: var(--ink-tertiary); font-weight: 400; }
+.win .body { display: grid; grid-template-columns: 1.25fr 1fr; height: calc(100% - 44px); }
+.win .main { padding: 32px 36px; border-right: 1px solid var(--separator); }
+.win .main .ns-caption { display: block; }
+.win .main h3 { font-family: var(--font-display); font-size: 26px; line-height: 1.2; font-weight: 600; letter-spacing: .004em; margin: 8px 0 14px; }
+.win .meta { display: flex; gap: 18px; align-items: center; font-size: 13px; color: var(--ink-secondary); }
+.win .grp { margin-top: 26px; }
+.win .grp > .ns-caption { margin: 0 0 8px 2px; text-transform: none; }
+.win .plan { margin-top: 22px; font-size: 13px; color: var(--ink-secondary); line-height: 1.5; }
+.win .plan b { color: var(--ink); font-weight: 500; }
+.win .side { padding: 32px 30px; background: var(--surface); }
+.win .side h4 { margin: 0 0 18px; font-size: 13px; font-weight: 600; letter-spacing: -0.01em; }
+.phone { position: absolute; right: 0; top: 64px; width: 286px; height: 560px; border-radius: 48px; background: #1D1D1F; padding: 10px; box-shadow: var(--shadow-lg); text-align: left; }
+.phone .scr { width: 100%; height: 100%; border-radius: 38px; background: var(--bg); overflow: hidden; display: flex; flex-direction: column; }
+.phone .isl { width: 90px; height: 26px; border-radius: 13px; background: #000; margin: 10px auto 0; flex: none; }
+.phone .hd { text-align: center; padding: 14px 0 12px; border-bottom: 1px solid var(--separator); }
+.phone .hd .av { width: 40px; height: 40px; border-radius: 50%; background: var(--bg-subtle); display: grid; place-items: center; margin: 0 auto 4px; }
+.phone .hd .t { font-size: 12px; font-weight: 500; }
+.phone .ns-chat { padding: 14px 12px; flex: 1; }
+.phone .ns-bubble { font-size: 13.5px; }
+.phone .typing { align-self: flex-start; display: flex; gap: 4px; background: var(--bg-subtle); padding: 12px 14px; border-radius: 19px; }
+.phone .typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-tertiary); }
+.phone .comp { margin: 0 10px 18px; height: 36px; border-radius: 18px; border: 1px solid var(--separator); display: flex; align-items: center; padding: 0 6px 0 14px; font-size: 13px; color: var(--ink-tertiary); }
+.phone .comp .send { margin-left: auto; width: 26px; height: 26px; border-radius: 50%; background: var(--primary); color: var(--on-primary); display: grid; place-items: center; }
+.phone .comp .send .ns-ico { width: 14px; height: 14px; }
+
+/* stats */
+.stats .wrap { max-width: 1180px; }
+.stats .row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; border-top: 1px solid var(--separator); padding-top: 40px; }
+.stats .ns-stat .v small { font-size: 24px; font-weight: 600; color: var(--ink-tertiary); letter-spacing: 0; margin-left: 4px; }
+.stats .src { margin-top: 32px; }
+
+/* how it works */
+.steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; max-width: 1180px; margin: 0 auto; padding: 0 22px; }
+.step .n { font-size: 13px; color: var(--ink-tertiary); font-variant-numeric: tabular-nums; }
+.step .ns-ico { width: 28px; height: 28px; stroke-width: 1.25; margin: 18px 0 16px; display: block; }
+.step h3 { margin: 0; }
+.step p { margin: 10px 0 0; font-size: 17px; line-height: 1.47; color: var(--ink-secondary); }
+.step .viz { margin-top: 28px; background: var(--surface); border-radius: var(--radius-lg); padding: 16px; min-height: 120px; display: flex; flex-direction: column; justify-content: center; gap: 8px; }
+.step .viz .kv { display: flex; justify-content: space-between; font-size: 12px; gap: 8px; }
+.step .viz .kv span:first-child { color: var(--ink-secondary); }
+.step .viz .kv span:last-child { font-family: var(--font-mono); }
+
+/* departments */
+.depts { display: grid; grid-template-columns: repeat(4, 1fr); max-width: 1180px; margin: 0 auto; padding: 0 22px; }
+.dept { padding: 8px 28px 0; border-left: 1px solid var(--separator); display: flex; flex-direction: column; }
+.dept:first-child { border-left: 0; padding-left: 0; }
+.dept > .ns-ico { width: 30px; height: 30px; stroke-width: 1.25; }
+.dept h3 { margin: 18px 0 2px; }
+.dept .code { font-family: var(--font-mono); font-size: 12px; color: var(--ink-tertiary); letter-spacing: 0; }
+.dept .scope { min-height: 42px; font-size: 15px; color: var(--ink-secondary); margin-top: 10px; letter-spacing: -0.016em; }
+.dept ul { list-style: none; margin: 22px 0 0; padding: 0; font-size: 15px; letter-spacing: -0.016em; }
+.dept li { padding: 10px 0; border-top: 1px solid var(--separator); }
+.dept .foot { margin-top: 22px; }
+.dept-new { text-align: center; margin-top: 64px; font-size: 17px; color: var(--ink-secondary); }
+.dept-new b { color: var(--ink); font-weight: 600; }
+
+/* AI */
+.canvas { position: relative; max-width: 1040px; height: 470px; margin: 0 auto; background: var(--surface); border-radius: var(--radius-xl); overflow: hidden; }
+.canvas .dots { position: absolute; inset: 0; background-image: radial-gradient(var(--separator) 1px, transparent 1px); background-size: 20px 20px; opacity: .8; }
+.canvas svg.edges { position: absolute; left: 0; top: 0; width: 1040px; height: 470px; }
+.canvas .e { fill: none; stroke: var(--ink-tertiary); stroke-width: 1; opacity: .7; }
+.canvas .e.live { stroke: var(--blue); opacity: 1; stroke-dasharray: 4 4; animation: dash 1.2s linear infinite; }
+.canvas .e.idle { stroke-dasharray: 2 4; opacity: .4; }
+@keyframes dash { to { stroke-dashoffset: -16; } }
+.canvas .ns-node { position: absolute; width: 180px; }
+.canvas .ns-node.wn { width: 210px; }
+.lbl { position: absolute; transform: translateX(-50%); font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0; color: var(--ink-secondary); background: var(--surface); border: 1px solid var(--separator); border-radius: 6px; padding: 1px 6px; white-space: nowrap; }
+.lbl.live { color: var(--blue-ink); border-color: color-mix(in srgb, var(--blue) 35%, var(--separator)); }
+.htl { position: absolute; left: 32px; right: 32px; bottom: 28px; border-top: 1px solid var(--separator); padding-top: 22px; display: grid; grid-template-columns: repeat(5, 1fr); }
+.htl .s { position: relative; padding-right: 16px; }
+.htl .s::before { content: ""; position: absolute; left: 0; right: 0; top: 4px; height: 1px; background: var(--separator); }
+.htl .s:last-child::before { right: auto; width: 0; }
+.htl .s i { position: relative; display: block; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--ink-tertiary); background: var(--surface); box-sizing: border-box; }
+.htl .s.done i { background: var(--green); border-color: var(--green); }
+.htl .s.now i { background: var(--blue); border-color: var(--blue); box-shadow: 0 0 0 4px var(--blue-soft); }
+.htl .s b { display: block; margin-top: 12px; font-size: 13px; font-weight: 500; letter-spacing: -0.01em; }
+.htl .s.pending b { color: var(--ink-secondary); }
+.htl .s span { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--ink-tertiary); margin-top: 2px; letter-spacing: 0; }
+.feats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; max-width: 1040px; margin: 64px auto 0; }
+.feats .ns-ico { width: 26px; height: 26px; stroke-width: 1.25; }
+.feats h4 { margin: 14px 0 6px; font-size: 17px; font-weight: 600; letter-spacing: -0.022em; }
+.feats p { margin: 0; font-size: 15px; line-height: 1.47; color: var(--ink-secondary); letter-spacing: -0.016em; }
+.chain { display: none; }
+
+/* activity */
+.act { display: grid; grid-template-columns: 1.3fr 1fr; gap: 40px; max-width: 1180px; margin: 0 auto; padding: 0 22px; align-items: start; }
+.map { position: relative; height: 420px; border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-subtle); }
+.map svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.map .road { fill: none; stroke: var(--surface); stroke-width: 4; }
+.map .road.sm { stroke-width: 2; }
+.map .river { fill: none; stroke: var(--fill); stroke-width: 16; stroke-linecap: round; }
+.map .heat { fill: var(--ink); }
+.map .pin { position: absolute; transform: translate(-50%, -50%); font-size: 12px; font-weight: 500; background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: var(--radius-full); padding: 4px 10px; box-shadow: var(--shadow-md); white-space: nowrap; letter-spacing: -0.01em; }
+.hots { margin-top: 20px; display: flex; flex-direction: column; }
+.hot { display: grid; grid-template-columns: 120px 1fr 32px; gap: 14px; align-items: center; font-size: 15px; padding: 10px 0; border-top: 1px solid var(--separator); letter-spacing: -0.016em; }
+.hot .bar { height: 4px; border-radius: 2px; background: var(--bg-subtle); }
+.hot .bar i { display: block; height: 100%; border-radius: 2px; background: var(--ink); }
+.hot span:last-child { text-align: right; color: var(--ink-secondary); font-variant-numeric: tabular-nums; }
+.feedhd { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+.feedhd h3 { margin: 0; }
+.feed .ns-list { border: 1px solid var(--separator); }
+.feed .note { margin-top: 14px; }
+.mapbtn { display: none !important; }
+
+/* CTA */
+.cta { text-align: center; }
+.cta .ctas { display: flex; gap: 14px; justify-content: center; margin-top: 36px; }
+.track { max-width: 460px; margin: 56px auto 0; }
+.track .ns-input { height: 52px; padding-right: 6px; background: var(--surface); border-color: var(--separator); }
+.track .go { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: var(--on-primary); display: grid; place-items: center; flex: none; }
+.track .ns-footnote { margin-top: 12px; }
+
+/* ---------- mobile ---------- */
+@container (max-width: 700px) {
+  .lp .sec { padding: var(--space-20) 0; }
+  .lp .sec-head { margin-bottom: var(--space-10); padding: 0 20px; }
+  .ns-display { font-size: 44px; line-height: 1.08; }
+  .ns-headline { font-size: 36px; line-height: 1.1; }
+  .ns-lead { font-size: 19px; }
+  .hero { padding-top: 48px; }
+  .hero .wrap { padding: 0 20px; }
+  .hero .ctas { flex-direction: column; align-items: stretch; padding: 0 12px; }
+  .hero .trust { flex-direction: column; gap: 8px; align-items: center; }
+  .stage { height: 560px; margin-top: 48px; }
+  .win { display: none; }
+  .phone { position: relative; right: auto; top: 0; margin: 0 auto; width: 270px; height: 540px; }
+  .stats .row { grid-template-columns: 1fr 1fr; gap: 28px 20px; padding-top: 28px; }
+  .ns-stat .v { font-size: 36px; }
+  .ns-stat .k { font-size: 13px; }
+  .stats .ns-stat .v small { font-size: 18px; }
+  .steps { grid-template-columns: 1fr; gap: 44px; }
+  .step .viz { display: none; }
+  .depts { grid-template-columns: 1fr; }
+  .dept { border-left: 0; padding: 28px 0; border-top: 1px solid var(--separator); }
+  .dept:first-child { border-top: 0; padding-top: 0; }
+  .dept ul { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+  .dept li { border: 0; padding: 0 10px; height: 28px; display: inline-flex; align-items: center; background: var(--bg-subtle); border-radius: var(--radius-full); font-size: 13px; }
+  .dept-new { margin-top: 32px; padding: 0 20px; font-size: 15px; }
+  .canvas, .feats { display: none; }
+  .chain { display: flex; flex-direction: column; background: var(--surface); border-radius: var(--radius-lg); padding: 20px; margin: 0 20px; text-align: left; }
+  .chain .conn { height: 26px; margin-left: 26px; border-left: 1px solid var(--separator); position: relative; }
+  .chain .conn.live { border-left: 1px dashed var(--blue); }
+  .chain .conn span { position: absolute; left: 12px; top: 5px; font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-secondary); }
+  .chain .conn.live span { color: var(--blue-ink); }
+  .chain .ns-tl { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--separator); }
+  .chain .mfeat { display: flex; flex-direction: column; gap: 18px; margin-top: 8px; padding-top: 20px; border-top: 1px solid var(--separator); }
+  .chain .mfeat b { font-size: 15px; font-weight: 600; display: block; }
+  .chain .mfeat span { font-size: 13px; color: var(--ink-secondary); }
+  .act { grid-template-columns: 1fr; }
+  .act > .mapcol { display: none; }
+  .mapbtn { display: inline-flex !important; }
+  .cta .wrap { padding: 0 20px; }
+  .cta .ctas { flex-direction: column; align-items: stretch; padding: 0 12px; }
+}
+.chain .mfeat { display: none; }
+@container (max-width: 700px) { .chain .mfeat { display: flex; } }
+
+/* low-fi annotation colour (board only) */
+.lf .anno { background: #1D1D1F; }
+/* ===================== LOW-FIDELITY ===================== */
+.lfp { padding-bottom: 40px; }
+.lfp .w { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+.lfp .nav { height: 76px; display: flex; align-items: center; gap: 28px; }
+.lfp .nav .links { display: flex; gap: 20px; }
+.lfp .nav .links .ln { width: 80px; }
+.lfp .nav .rt { margin-left: auto; display: flex; gap: 8px; }
+.lfp .hero { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; padding-top: 32px; }
+.lfp .hero .txt { display: flex; flex-direction: column; gap: 14px; }
+.lfp .col { display: flex; flex-direction: column; gap: 12px; }
+.lfp .sec { padding-top: 88px; }
+.lfp .row4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.lfp .card { background: #FFFFFF; border: 1.5px solid #D3D9D5; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+.lfp .split { display: grid; grid-template-columns: 1fr 1.1fr; gap: 40px; }
+.lfp .dark { background: #C9D0CC; border-radius: 28px; padding: 56px; }
+.lfp .menu { display: none; }
+.lfp .sticky { display: none; }
+@container (max-width: 700px) {
+  .lfp .w { padding: 0 16px; }
+  .lfp .nav { height: 64px; }
+  .lfp .nav .links, .lfp .nav .rt { display: none; }
+  .lfp .menu { display: block; margin-left: auto; }
+  .lfp .hero, .lfp .split, .lfp .row4 { grid-template-columns: 1fr; }
+  .lfp .row4.two { grid-template-columns: 1fr 1fr; }
+  .lfp .row4.scroll { display: flex; overflow: hidden; }
+  .lfp .row4.scroll > * { min-width: 240px; }
+  .lfp .sec { padding-top: 56px; }
+  .lfp .dark { padding: 32px 20px; border-radius: 20px; }
+  .lfp .hide-m { display: none !important; }
+  .lfp .sticky { display: flex; position: sticky; bottom: 0; padding: 12px 16px; background: #FAFBFA; gap: 8px; }
+  .lfp .sticky .btn { flex: 1; }
+}
+
+</style>
+</head>
+<body class="board">
+<script src="shared/icons.js?v=2"></script>
+
+<header class="bd-top">
+  <span class="num">01 / 09</span>
+  <h1>Public landing page</h1>
+  <span class="flag" style="background:#F5F5F7;color:#1D1D1F">v2 · monochrome</span>
+  <span class="sp"></span>
+  <div class="bd-tabs" role="tablist">
+    <button data-tab="lofi" role="tab">Low-fi</button>
+    <button data-tab="hifi" role="tab">High-fi</button>
+    <button data-tab="spec" role="tab">Spec</button>
+  </div>
+  <div class="bd-tabs" aria-label="Theme">
+    <button data-theme-set="light" class="on">Light</button>
+    <button data-theme-set="dark">Dark</button>
+  </div>
+</header>
+
+<div class="bd-wrap" id="lofi">
+  <p class="bd-note">Structure only. Same sections and order as v1; the hero now centres its copy over a product composition, and the AI section sits on a light canvas.</p>
+  <div class="bd-row">
+    <div class="bd-col" style="flex:1;min-width:640px">
+      <div class="bd-cap"><b>Desktop</b> 1440</div>
+      <div class="frame frame-desktop" data-tpl="tpl-lofi"><div class="chrome"><i></i><i></i><i></i><span>nagrik-sahayak / </span></div><div class="viewport"><div class="screen lf"></div></div></div>
+    </div>
+    <div class="bd-col">
+      <div class="bd-cap"><b>Mobile</b> 390</div>
+      <div class="frame frame-mobile" data-tpl="tpl-lofi"><div class="screen lf"></div></div>
+    </div>
+  </div>
+</div>
+<template id="tpl-lofi">
+<div class="lfp">
+  <div class="w nav" style="position:relative">
+    <span class="anno" style="left:-6px;top:8px">1</span>
+    <div style="display:flex;gap:10px;align-items:center"><div class="box dk" style="width:34px;height:34px"></div><div class="ln h" style="width:130px;height:16px"></div></div>
+    <div class="links"><div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln"></div></div>
+    <div class="rt"><span class="btn">Sign in</span><span class="btn fill">File a complaint</span></div>
+    <div class="menu box" style="width:40px;height:40px"></div>
+  </div>
+  <div class="w" style="position:relative;padding-top:56px;text-align:center">
+    <span class="anno" style="left:-6px;top:56px">2</span>
+    <div class="ln" style="width:200px;margin:0 auto"></div>
+    <div class="ln hh" style="width:46%;margin:22px auto 0"></div>
+    <div class="ln hh" style="width:68%;margin:12px auto 0;background:#B9C1BC"></div>
+    <div class="ln" style="width:52%;margin:22px auto 0"></div><div class="ln" style="width:40%;margin:10px auto 0"></div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:24px"><span class="btn fill">File a complaint</span><span class="btn">Track a complaint</span></div>
+    <div style="display:flex;gap:16px;justify-content:center;margin-top:16px"><div class="ln" style="width:110px"></div><div class="ln" style="width:100px"></div><div class="ln" style="width:110px"></div></div>
+    <div style="position:relative;height:420px;margin-top:48px">
+      <div class="box hide-m" style="position:absolute;left:4%;right:14%;top:0;height:380px;border-radius:14px;background:#FFFFFF;border:1.5px solid #D3D9D5"><span class="tag">Product window: complaint status + timeline</span>
+        <div class="box" style="position:absolute;left:20px;top:44px;width:56%;height:300px"></div><div class="box" style="position:absolute;right:20px;top:44px;width:36%;height:300px"></div></div>
+      <div class="box dk" style="position:absolute;right:6%;top:60px;width:220px;height:360px;border-radius:36px"><span class="tag">Phone: Concierge chat</span></div>
+    </div>
+  </div>
+  <div class="w" style="padding-top:56px;position:relative">
+    <span class="anno" style="left:-6px;top:50px">3</span>
+    <div class="row4 two card" style="flex-direction:row;display:grid;padding:28px">
+      <div class="col"><div class="ln hh" style="width:60%"></div><div class="ln"></div></div><div class="col"><div class="ln hh" style="width:60%"></div><div class="ln"></div></div><div class="col"><div class="ln hh" style="width:60%"></div><div class="ln"></div></div><div class="col"><div class="ln hh" style="width:60%"></div><div class="ln"></div></div>
+    </div>
+  </div>
+  <div class="w sec" style="position:relative">
+    <span class="anno" style="left:-6px;top:82px">4</span>
+    <div class="col" style="margin-bottom:28px"><span class="lbl">How it works</span><div class="ln h" style="width:420px;max-width:90%"></div></div>
+    <div class="row4">
+      <div class="card"><div class="circ" style="width:40px;height:40px;border-radius:10px"></div><div class="ln h" style="width:70%"></div><div class="ln"></div><div class="ln" style="width:80%"></div><div class="box hide-m" style="height:90px;margin-top:20px"></div></div>
+      <div class="card"><div class="circ" style="width:40px;height:40px;border-radius:10px"></div><div class="ln h" style="width:70%"></div><div class="ln"></div><div class="ln" style="width:80%"></div><div class="box hide-m" style="height:90px;margin-top:20px"></div></div>
+      <div class="card"><div class="circ" style="width:40px;height:40px;border-radius:10px"></div><div class="ln h" style="width:70%"></div><div class="ln"></div><div class="ln" style="width:80%"></div><div class="box hide-m" style="height:90px;margin-top:20px"></div></div>
+      <div class="card" style="background:#D3D9D5"><div class="circ" style="width:40px;height:40px;border-radius:10px;background:#FFF"></div><div class="ln h" style="width:70%"></div><div class="ln"></div><div class="ln" style="width:80%"></div><div class="box hide-m" style="height:90px;margin-top:20px;background:#FFF"></div></div>
+    </div>
+  </div>
+  <div class="w sec" style="position:relative">
+    <span class="anno" style="left:-6px;top:82px">5</span>
+    <div class="col" style="margin-bottom:28px"><span class="lbl">Departments</span><div class="ln h" style="width:360px;max-width:90%"></div></div>
+    <div class="row4 scroll">
+      <div class="card"><div class="box" style="width:44px;height:44px"></div><div class="ln h" style="width:60%"></div><div class="ln"></div><div class="ln"></div><div class="ln" style="width:70%"></div><div class="ln" style="width:50%;margin-top:16px"></div></div>
+      <div class="card"><div class="box" style="width:44px;height:44px"></div><div class="ln h" style="width:60%"></div><div class="ln"></div><div class="ln"></div><div class="ln" style="width:70%"></div><div class="ln" style="width:50%;margin-top:16px"></div></div>
+      <div class="card"><div class="box" style="width:44px;height:44px"></div><div class="ln h" style="width:60%"></div><div class="ln"></div><div class="ln"></div><div class="ln" style="width:70%"></div><div class="ln" style="width:50%;margin-top:16px"></div></div>
+      <div class="card"><div class="box" style="width:44px;height:44px"></div><div class="ln h" style="width:60%"></div><div class="ln"></div><div class="ln"></div><div class="ln" style="width:70%"></div><div class="ln" style="width:50%;margin-top:16px"></div></div>
+    </div>
+    <div class="outline" style="margin-top:20px;height:64px;display:flex;align-items:center;padding:0 20px;gap:12px"><div class="box" style="width:36px;height:36px"></div><div class="ln" style="width:50%"></div></div>
+  </div>
+  <div class="w sec" style="position:relative;text-align:center">
+    <span class="anno" style="left:-6px;top:82px">6</span>
+    <span class="lbl">AI-powered, openly</span><div class="ln hh" style="width:60%;margin:12px auto 0"></div><div class="ln" style="width:44%;margin:16px auto 0"></div>
+    <div class="box" style="height:400px;margin-top:32px;background:#FFFFFF;border:1.5px solid #D3D9D5;border-radius:24px;position:relative">
+      <span class="tag">White canvas: left-to-right agent flow</span>
+      <div class="box" style="position:absolute;left:3%;top:120px;width:16%;height:44px"></div>
+      <div class="box" style="position:absolute;left:26%;top:120px;width:16%;height:44px"></div>
+      <div class="box dk" style="position:absolute;left:49%;top:120px;width:16%;height:44px"></div>
+      <div class="box" style="position:absolute;right:3%;top:44px;width:19%;height:44px"></div>
+      <div class="box" style="position:absolute;right:3%;top:120px;width:19%;height:44px"></div>
+      <div class="box" style="position:absolute;right:3%;top:196px;width:19%;height:44px;opacity:.5"></div>
+      <div class="outline" style="position:absolute;left:3%;right:3%;bottom:24px;height:72px"><span class="tag">Execution timeline</span></div>
+    </div>
+    <div class="row4" style="grid-template-columns:repeat(3,1fr);margin-top:32px;text-align:left">
+      <div class="col"><div class="box" style="width:28px;height:28px"></div><div class="ln h" style="width:60%;height:16px"></div><div class="ln"></div><div class="ln" style="width:70%"></div></div>
+      <div class="col"><div class="box" style="width:28px;height:28px"></div><div class="ln h" style="width:60%;height:16px"></div><div class="ln"></div><div class="ln" style="width:70%"></div></div>
+      <div class="col"><div class="box" style="width:28px;height:28px"></div><div class="ln h" style="width:60%;height:16px"></div><div class="ln"></div><div class="ln" style="width:70%"></div></div>
+    </div>
+  </div>
+  <div class="w sec" style="position:relative">
+    <span class="anno" style="left:-6px;top:82px">7</span>
+    <div class="col" style="margin-bottom:28px"><span class="lbl">Across the city</span><div class="ln h" style="width:380px;max-width:90%"></div></div>
+    <div class="split">
+      <div class="card hide-m"><div class="ln h" style="width:40%"></div><div class="box x" style="height:280px"><span class="tag">Heat map</span></div><div class="ln"></div><div class="ln" style="width:80%"></div></div>
+      <div class="card"><div class="ln h" style="width:40%"></div>
+        <div style="display:flex;gap:12px;align-items:center;padding:8px 0"><div class="box" style="width:36px;height:36px"></div><div class="col" style="flex:1;gap:6px"><div class="ln" style="width:70%"></div><div class="ln" style="width:40%"></div></div><div class="box" style="width:80px;height:22px;border-radius:99px"></div></div>
+        <div style="display:flex;gap:12px;align-items:center;padding:8px 0"><div class="box" style="width:36px;height:36px"></div><div class="col" style="flex:1;gap:6px"><div class="ln" style="width:70%"></div><div class="ln" style="width:40%"></div></div><div class="box" style="width:80px;height:22px;border-radius:99px"></div></div>
+        <div style="display:flex;gap:12px;align-items:center;padding:8px 0"><div class="box" style="width:36px;height:36px"></div><div class="col" style="flex:1;gap:6px"><div class="ln" style="width:70%"></div><div class="ln" style="width:40%"></div></div><div class="box" style="width:80px;height:22px;border-radius:99px"></div></div>
+        <div style="display:flex;gap:12px;align-items:center;padding:8px 0"><div class="box" style="width:36px;height:36px"></div><div class="col" style="flex:1;gap:6px"><div class="ln" style="width:70%"></div><div class="ln" style="width:40%"></div></div><div class="box" style="width:80px;height:22px;border-radius:99px"></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="w sec" style="position:relative">
+    <span class="anno" style="left:-6px;top:82px">8</span>
+    <div class="split box" style="padding:48px;border-radius:28px">
+      <div class="col"><div class="ln hh" style="width:80%"></div><div class="ln"></div><div class="ln" style="width:60%"></div><div style="display:flex;gap:10px;margin-top:12px"><span class="btn fill">File a complaint</span><span class="btn hide-m">How it works</span></div></div>
+      <div class="card"><div class="ln" style="width:40%"></div><div style="display:flex;gap:8px"><div class="box" style="flex:1;height:44px;border-radius:99px;background:#FFF;border:1.5px solid #B9C1BC"></div><span class="btn fill">Track</span></div></div>
+    </div>
+  </div>
+  <div class="sec" style="position:relative">
+    <div class="box dk" style="border-radius:0;padding:48px 32px;margin-top:0">
+      <span class="anno" style="left:8px;top:16px">9</span>
+      <div class="row4 two" style="max-width:1136px;margin:0 auto"><div class="col"><div class="ln h" style="width:60%;background:#8C9590"></div><div class="ln" style="background:#E4E8E5"></div><div class="ln" style="width:70%;background:#E4E8E5"></div></div><div class="col"><div class="ln" style="width:40%;background:#8C9590"></div><div class="ln" style="width:60%;background:#E4E8E5"></div><div class="ln" style="width:50%;background:#E4E8E5"></div></div><div class="col"><div class="ln" style="width:40%;background:#8C9590"></div><div class="ln" style="width:60%;background:#E4E8E5"></div><div class="ln" style="width:50%;background:#E4E8E5"></div></div><div class="col"><div class="ln" style="width:40%;background:#8C9590"></div><div class="ln" style="width:60%;background:#E4E8E5"></div><div class="ln" style="width:50%;background:#E4E8E5"></div></div></div>
+    </div>
+  </div>
+  <div class="sticky"><span class="btn">Track</span><span class="btn fill">File a complaint</span></div>
+</div>
+</template>
+
+<div class="bd-wrap hifi" id="hifi">
+  <p class="bd-note">Monochrome, typography-led. Colour appears only for status: green done, blue active, orange pending, red error. Use the Light/Dark switch to check both appearances.</p>
+  <div class="bd-col">
+    <div class="bd-cap"><b>Desktop</b> 1440 · full page</div>
+    <div class="frame frame-desktop" data-tpl="tpl-hifi"><div class="chrome"><i></i><i></i><i></i><span>nagrik-sahayak / </span></div><div class="viewport"><div class="screen pb"></div></div></div>
+  </div>
+  <h2 class="bd-h2">Mobile</h2>
+  <div class="bd-row">
+    <div class="bd-col"><div class="bd-cap"><b>Full page</b> 390 · sticky action bar</div><div class="frame frame-mobile" data-tpl="tpl-hifi"><div class="screen pb"></div></div></div>
+    <div class="bd-col"><div class="bd-cap"><b>Menu open</b> first viewport</div><div class="frame frame-mobile clip" data-tpl="tpl-hifi" data-state="menu-open"><div class="screen pb"></div></div></div>
+  </div>
+  <h2 class="bd-h2">States</h2>
+  <p class="bd-note">Only the activity list and the track field depend on live data. Everything else is static.</p>
+  <div class="bd-row" id="states"></div>
+</div>
+
+<template id="tpl-hifi">
+<div class="lp">
+  <!-- 1 NAV -->
+  <header class="pb-nav"><div class="wrap">
+    <a class="pb-logo"><svg class="ns-ico"><use href="#i-landmark"/></svg>Nagrik Sahayak</a>
+    <nav class="pb-links"><a>How it works</a><a>Departments</a><a>Track a complaint</a><a>About</a></nav>
+    <div class="right"><a class="ns-link">Sign in</a><a class="ns-btn ns-btn-primary ns-btn-sm">File a complaint</a></div>
+    <span class="pb-menu" aria-label="Open menu"><svg class="ns-ico"><use href="#i-menu"/></svg></span>
+  </div></header>
+
+  <!-- 2 HERO -->
+  <section class="hero"><div class="wrap">
+    <span class="status"><span class="ns-live ok"></span>4 department agents online · Delhi</span>
+    <h1 class="ns-display">One complaint. <span>Every department<br>that can fix it.</span></h1>
+    <p class="ns-lead">Describe the problem in your own words — English or Hinglish. Our agents find every department involved, file a ticket with each one, and give you a single status to follow.</p>
+    <div class="ctas"><a class="ns-btn ns-btn-primary ns-btn-lg">File a complaint</a><a class="ns-btn ns-btn-secondary ns-btn-lg">Track a complaint</a></div>
+    <div class="trust"><span><svg class="ns-ico"><use href="#i-lang"/></svg>English and Hinglish</span><span><svg class="ns-ico"><use href="#i-pin"/></svg>Any place in Delhi</span><span><svg class="ns-ico"><use href="#i-shield"/></svg>Every step auditable</span></div>
+  </div>
+  <div class="stage">
+    <div class="win">
+      <div class="bar"><i></i><i></i><i></i><span>Complaint</span><span class="ns-mono">CMP-20261121-0004</span></div>
+      <div class="body">
+        <div class="main">
+          <span class="ns-caption">Laxmi Nagar · filed 9:41 am</span>
+          <h3>Road repair near the metro broke the water pipe</h3>
+          <div class="meta"><span class="ns-status active">In progress</span><span class="ns-prio"><i><b class="on"></b><b class="on"></b><b class="on"></b><b></b></i>High</span><span>ETA Sat 22 Nov, 9:15 am</span></div>
+          <div class="grp"><div class="ns-caption">Departments</div>
+            <div class="ns-list inset">
+              <div class="ns-item"><span class="ic"><svg class="ns-ico"><use href="#i-drop"/></svg></span><div><div class="t">Water Board</div><div class="m ns-mono" style="font-size:12px">DJB-261121-0004 · Crew C4</div></div><span class="ns-status done">Resolved</span></div>
+              <div class="ns-item"><span class="ic"><svg class="ns-ico"><use href="#i-road"/></svg></span><div><div class="t">Municipal Roads</div><div class="m ns-mono" style="font-size:12px">MCD-261121-0002 · Crew A7</div></div><span class="ns-status active">In progress</span></div>
+            </div></div>
+          <p class="plan"><b>Plan</b> — Water Board repairs the pipe first; Roads resurfaces once that ticket is resolved.</p>
+        </div>
+        <div class="side">
+          <h4>Agent activity</h4>
+          <ol class="ns-tl">
+            <li class="done"><span class="k"></span><div><div class="h">Discovered agents</div><div class="b">4 Agent Cards read</div></div><span class="ms">0.04s</span></li>
+            <li class="done"><span class="k"></span><div><div class="h">Split into 2 tasks</div><div class="b">water_pipe_burst, excavation_damage</div></div><span class="ms">0.06s</span></li>
+            <li class="done"><span class="k"></span><div><div class="h">Dispatched</div><div class="b"><span class="ns-code">message/send</span> × 2</div></div><span class="ms">0.21s</span></li>
+            <li class="now"><span class="k"></span><div><div class="h">Tracking</div><div class="b"><span class="ns-code">tasks/get</span> · Roads working</div></div><span class="ms">0.48s</span></li>
+            <li class="pending"><span class="k"></span><div><div class="h">Combined status</div><div class="b">Waiting for Roads</div></div><span class="ms">—</span></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+    <div class="phone"><div class="scr">
+      <div class="isl"></div>
+      <div class="hd"><div class="av"><svg class="ns-ico"><use href="#i-chat"/></svg></div><div class="t">Concierge</div></div>
+      <div class="ns-chat">
+        <div class="ns-bubble me">Laxmi Nagar metro ke paas road repair se paani ki pipe toot gayi</div>
+        <div class="ns-bubble them">I’ve filed this with <b style="font-weight:600">2 departments</b> — Water Board and Municipal Roads.</div>
+        <div class="ns-bubble them">Your ID is <span class="ns-mono" style="font-size:12px">CMP-20261121-0004</span>. Water repairs come first.</div>
+        <div class="typing"><i></i><i></i><i></i></div>
+      </div>
+      <div class="comp">Message<span class="send"><svg class="ns-ico"><use href="#i-up"/></svg></span></div>
+    </div></div>
+  </div></section>
+
+  <!-- 3 STATS -->
+  <section class="stats" style="padding-top:var(--space-12)"><div class="wrap">
+    <div class="row">
+      <div class="ns-stat"><span class="v">4<small>agents</small></span><span class="k">Water, Electricity, Roads and Sanitation — each an independent AI agent.</span></div>
+      <div class="ns-stat"><span class="v">85%</span><span class="k">of unseen complaints routed to exactly the right departments, versus 60% for a one-department portal.</span></div>
+      <div class="ns-stat"><span class="v">5<small>of 6</small></span><span class="k">multi-department complaints fully routed. A single-desk portal routes none.</span></div>
+      <div class="ns-stat"><span class="v">100%</span><span class="k">of locations understood, from metro stations to “kamla nagar me”.</span></div>
+    </div>
+    <p class="ns-footnote src">Held-out evaluation set of 20 complaints, rules engine.</p>
+  </div></section>
+
+  <!-- 4 HOW IT WORKS -->
+  <section class="sec subtle" style="margin-top:var(--space-20)">
+    <div class="sec-head wrap"><span class="ns-eyebrow">How it works</span><h2 class="ns-headline">From your words<br>to the right crews.</h2><p class="ns-lead">You talk to one assistant. Behind it, a team of agents coordinates every department your problem touches.</p></div>
+    <div class="steps">
+      <div class="step"><span class="n">1</span><svg class="ns-ico"><use href="#i-chat"/></svg><h3 class="ns-title3">You describe it.</h3><p>Type it the way you’d say it. No forms, no department codes.</p><div class="viz"><div class="ns-chat"><div class="ns-bubble me" style="font-size:13px">Rohini me bijli nahi hai subah se</div></div></div></div>
+      <div class="step"><span class="n">2</span><svg class="ns-ico"><use href="#i-sparkle"/></svg><h3 class="ns-title3">The Concierge understands.</h3><p>It finds the issue, the place and the urgency — and asks if anything is missing.</p><div class="viz"><div class="kv"><span>Issue</span><span>power_outage</span></div><div class="kv"><span>Place</span><span>Rohini</span></div><div class="kv"><span>Urgency</span><span>normal</span></div></div></div>
+      <div class="step"><span class="n">3</span><svg class="ns-ico"><use href="#i-git"/></svg><h3 class="ns-title3">Agents coordinate.</h3><p>The Orchestrator files a ticket with every department involved, in parallel, over A2A.</p><div class="viz"><div class="kv"><span>Electricity</span><span class="ns-status done" style="font-family:var(--font-sans)">Ticket filed</span></div><div class="kv"><span>Ticket</span><span>ELC-261121-0007</span></div><div class="kv"><span>Crew</span><span>B3 · Rohini</span></div></div></div>
+      <div class="step"><span class="n">4</span><svg class="ns-ico"><use href="#i-ccheck"/></svg><h3 class="ns-title3">You follow one status.</h3><p>One complaint ID and one combined status, even when three departments are involved.</p><div class="viz"><div class="kv"><span>CMP-20261121-0007</span><span class="ns-status active" style="font-family:var(--font-sans)">In progress</span></div><div class="kv"><span>ETA</span><span>Today, 6:30 pm</span></div></div></div>
+    </div>
+  </section>
+
+  <!-- 5 DEPARTMENTS -->
+  <section class="sec">
+    <div class="sec-head wrap"><span class="ns-eyebrow">Departments</span><h2 class="ns-headline">Four departments.<br>One front door.</h2><p class="ns-lead">Each department runs its own agent, its own records and its own crews. You never need to know which is which.</p></div>
+    <div class="depts">
+      <div class="dept"><svg class="ns-ico"><use href="#i-drop"/></svg><h3 class="ns-title3">Water Board</h3><span class="code">DJB</span><div class="scope">Water mains and sewer lines</div><ul><li>Pipe burst or leakage</li><li>No water supply</li><li>Contaminated water</li><li>Low pressure</li><li>Sewer overflow</li></ul><div class="foot"><span class="ns-status done">Online</span></div></div>
+      <div class="dept"><svg class="ns-ico"><use href="#i-zap"/></svg><h3 class="ns-title3">Electricity</h3><span class="code">ELC</span><div class="scope">Feeders, transformers, streetlights</div><ul><li>Power outage</li><li>Live wire or sparking</li><li>Underground cable damage</li><li>Transformer fault</li><li>Voltage fluctuation</li><li>Streetlight not working</li></ul><div class="foot"><span class="ns-status done">Online</span></div></div>
+      <div class="dept"><svg class="ns-ico"><use href="#i-road"/></svg><h3 class="ns-title3">Municipal Roads</h3><span class="code">MCD</span><div class="scope">Roads and footpaths</div><ul><li>Potholes</li><li>Unsafe excavation</li><li>Waterlogging</li><li>Debris or blocked road</li><li>Broken footpath</li></ul><div class="foot"><span class="ns-status done">Online</span></div></div>
+      <div class="dept"><svg class="ns-ico"><use href="#i-trash"/></svg><h3 class="ns-title3">Sanitation</h3><span class="code">SAN</span><div class="scope">Garbage collection points</div><ul><li>Garbage not collected</li><li>Dead animal removal</li></ul><div class="foot"><span class="ns-status done">Online</span></div></div>
+    </div>
+    <p class="dept-new"><b>New departments join on their own.</b> Any agent that publishes an Agent Card is discovered automatically. <a class="ns-link" style="color:var(--blue-ink)">See all agents<svg class="ns-ico"><use href="#i-chev"/></svg></a></p>
+  </section>
+
+  <!-- 6 AI -->
+  <section class="sec subtle">
+    <div class="sec-head wrap"><span class="ns-eyebrow">AI-powered, openly</span><h2 class="ns-headline">Agents that talk to each other.<br>And show their work.</h2><p class="ns-lead">Every department is an independent agent. They speak an open protocol, Agent2Agent, so every request and reply can be inspected.</p></div>
+    <div class="wrap wide">
+      <div class="canvas" aria-label="Agent workflow: citizen to Concierge to Orchestrator, which dispatches to Water Board (completed) and Municipal Roads (working); Electricity is not involved">
+        <div class="dots"></div>
+        <svg class="edges" viewBox="0 0 1040 470" aria-hidden="true">
+          <path class="e" d="M212 157 L272 157"/>
+          <path class="e" d="M452 157 L512 157"/>
+          <path class="e" d="M692 157 C 745 157 740 67 790 67"/>
+          <path class="e live" d="M692 157 L790 157"/>
+          <path class="e idle" d="M692 157 C 745 157 740 247 790 247"/>
+        </svg>
+        <div class="ns-node" style="left:32px;top:130px"><span class="ic"><svg class="ns-ico"><use href="#i-user"/></svg></span><div><div class="t">Citizen</div><div class="s">Laxmi Nagar</div></div></div>
+        <div class="ns-node" style="left:272px;top:130px"><span class="ic"><svg class="ns-ico"><use href="#i-chat"/></svg></span><div><div class="t">Concierge</div><div class="s">2 issues found</div></div><span class="dot done"></span></div>
+        <div class="ns-node active" style="left:512px;top:130px"><span class="ic"><svg class="ns-ico"><use href="#i-git"/></svg></span><div><div class="t">Orchestrator</div><div class="s">tracking 2 tasks</div></div><span class="dot active"></span></div>
+        <div class="ns-node wn" style="left:790px;top:40px"><span class="ic"><svg class="ns-ico"><use href="#i-drop"/></svg></span><div><div class="t">Water Board</div><div class="s">DJB-261121-0004</div></div><span class="dot done"></span></div>
+        <div class="ns-node wn" style="left:790px;top:130px"><span class="ic"><svg class="ns-ico"><use href="#i-road"/></svg></span><div><div class="t">Municipal Roads</div><div class="s">working</div></div><span class="dot active"></span></div>
+        <div class="ns-node wn idle" style="left:790px;top:220px"><span class="ic"><svg class="ns-ico"><use href="#i-zap"/></svg></span><div><div class="t">Electricity</div><div class="s">not involved</div></div></div>
+        <span class="lbl" style="left:242px;top:104px">chat</span>
+        <span class="lbl" style="left:482px;top:104px">message/send</span>
+        <span class="lbl" style="left:741px;top:40px">ticket</span>
+        <span class="lbl live" style="left:741px;top:166px">tasks/get</span>
+        <div class="htl">
+          <div class="s done"><i></i><b>Discover</b><span>+0.04s</span></div>
+          <div class="s done"><i></i><b>Decompose</b><span>+0.06s</span></div>
+          <div class="s done"><i></i><b>Dispatch</b><span>+0.21s</span></div>
+          <div class="s now"><i></i><b>Track</b><span>+0.48s</span></div>
+          <div class="s pending"><i></i><b>Aggregate</b><span>—</span></div>
+        </div>
+      </div>
+      <div class="chain">
+        <div class="ns-node"><span class="ic"><svg class="ns-ico"><use href="#i-user"/></svg></span><div><div class="t">Citizen</div><div class="s">Laxmi Nagar</div></div></div>
+        <div class="conn"><span>chat</span></div>
+        <div class="ns-node"><span class="ic"><svg class="ns-ico"><use href="#i-chat"/></svg></span><div><div class="t">Concierge</div><div class="s">2 issues found</div></div><span class="dot done"></span></div>
+        <div class="conn"><span>message/send</span></div>
+        <div class="ns-node active"><span class="ic"><svg class="ns-ico"><use href="#i-git"/></svg></span><div><div class="t">Orchestrator</div><div class="s">tracking 2 tasks</div></div><span class="dot active"></span></div>
+        <div class="conn live"><span>tasks/get</span></div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="ns-node"><span class="ic"><svg class="ns-ico"><use href="#i-drop"/></svg></span><div><div class="t">Water Board</div><div class="s">completed</div></div><span class="dot done"></span></div>
+          <div class="ns-node"><span class="ic"><svg class="ns-ico"><use href="#i-road"/></svg></span><div><div class="t">Municipal Roads</div><div class="s">working</div></div><span class="dot active"></span></div>
+        </div>
+        <ol class="ns-tl">
+          <li class="done"><span class="k"></span><div><div class="h">Discover</div></div><span class="ms">0.04s</span></li>
+          <li class="done"><span class="k"></span><div><div class="h">Decompose</div></div><span class="ms">0.06s</span></li>
+          <li class="done"><span class="k"></span><div><div class="h">Dispatch</div></div><span class="ms">0.21s</span></li>
+          <li class="now"><span class="k"></span><div><div class="h">Track</div></div><span class="ms">0.48s</span></li>
+          <li class="pending"><span class="k"></span><div><div class="h">Aggregate</div></div><span class="ms">—</span></li>
+        </ol>
+        <div class="mfeat"><div><b>Understands how Delhi talks</b><span>Hinglish-aware, with automatic fallback.</span></div><div><b>Discovers who can help</b><span>Reads each agent’s Agent Card.</span></div><div><b>Leaves an audit trail</b><span>Every message recorded against your ID.</span></div></div>
+      </div>
+      <div class="feats">
+        <div><svg class="ns-ico"><use href="#i-lang"/></svg><h4>Understands how Delhi talks.</h4><p>A Hinglish-aware rules engine, with optional Ollama or Gemini — and an automatic fallback so it never goes silent.</p></div>
+        <div><svg class="ns-ico"><use href="#i-card"/></svg><h4>Discovers who can help.</h4><p>Each agent publishes an Agent Card listing what it handles. The Orchestrator reads them to decide where a complaint goes.</p></div>
+        <div><svg class="ns-ico"><use href="#i-code"/></svg><h4>Leaves an audit trail.</h4><p>Every JSON-RPC message, task state and timing is recorded against the complaint ID.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 ACTIVITY -->
+  <section class="sec">
+    <div class="sec-head wrap"><span class="ns-eyebrow">Across the city</span><h2 class="ns-headline">What Delhi is<br>reporting right now.</h2><p class="ns-lead">Anonymised activity — where complaints come from and how they are moving.</p></div>
+    <div class="act">
+      <div class="mapcol">
+        <div class="map">
+          <svg viewBox="0 0 700 420" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            <path class="river" d="M520 -10 C 490 90 550 170 505 250 C 475 320 515 380 495 440"/>
+            <path class="road" d="M0 210 L700 186"/><path class="road" d="M330 0 L350 420"/><path class="road" d="M70 0 C 180 140 200 280 130 420"/>
+            <path class="road sm" d="M0 100 L700 80"/><path class="road sm" d="M0 320 L700 344"/><path class="road sm" d="M600 0 L630 420"/><path class="road sm" d="M200 0 L230 420"/>
+            <circle class="heat" cx="550" cy="200" r="46" opacity=".10"/><circle class="heat" cx="550" cy="200" r="24" opacity=".18"/><circle class="heat" cx="550" cy="200" r="6"/>
+            <circle class="heat" cx="165" cy="80" r="38" opacity=".08"/><circle class="heat" cx="165" cy="80" r="20" opacity=".16"/><circle class="heat" cx="165" cy="80" r="6"/>
+            <circle class="heat" cx="300" cy="170" r="26" opacity=".08"/><circle class="heat" cx="300" cy="170" r="12" opacity=".16"/><circle class="heat" cx="300" cy="170" r="5"/>
+            <circle class="heat" cx="420" cy="340" r="16" opacity=".1"/><circle class="heat" cx="420" cy="340" r="4"/>
+          </svg>
+          <span class="pin" style="left:79%;top:38%">Laxmi Nagar · 9</span>
+          <span class="pin" style="left:24%;top:11%">Rohini · 7</span>
+          <span class="pin" style="left:43%;top:32%">Karol Bagh · 4</span>
+        </div>
+        <div class="hots">
+          <div class="hot"><span>Laxmi Nagar</span><div class="bar"><i style="width:100%"></i></div><span>9</span></div>
+          <div class="hot"><span>Rohini</span><div class="bar"><i style="width:78%"></i></div><span>7</span></div>
+          <div class="hot"><span>Karol Bagh</span><div class="bar"><i style="width:44%"></i></div><span>4</span></div>
+        </div>
+      </div>
+      <div class="feed">
+        <div class="feedhd"><h3 class="ns-title3">Latest</h3><span class="ns-status active live">Live</span></div>
+        <div class="ns-list">
+          <div class="ns-item"><span class="ic"><svg class="ns-ico"><use href="#i-drop"/></svg></span><div><div class="t">Pipe burst near metro station</div><div class="m">Laxmi Nagar · Water Board, Roads</div></div><div class="r"><span class="ns-status active">In progress</span>4 min ago</div></div>
+          <div class="ns-item"><span class="ic"><svg class="ns-ico"><use href="#i-zap"/></svg></span><div><div class="t">No power since morning</div><div class="m">Rohini · Electricity</div></div><div class="r"><span class="ns-status pending">Registered</span>12 min ago</div></div>
+          <div class="ns-item"><span class="ic"><svg class="ns-ico"><use href="#i-road"/></svg></span><div><div class="t">Large pothole on main road</div><div class="m">Karol Bagh · Roads</div></div><div class="r"><span class="ns-status done">Resolved</span>1 hr ago</div></div>
+          <div class="ns-item"><span class="ic"><svg class="ns-ico"><use href="#i-trash"/></svg></span><div><div class="t">Garbage not collected, drain blocked</div><div class="m">Rohini · Sanitation, Water Board</div></div><div class="r"><span class="ns-status active">In progress</span>2 hr ago</div></div>
+          <div class="ns-item"><span class="ic"><svg class="ns-ico"><use href="#i-zap"/></svg></span><div><div class="t">Wire sparking near school</div><div class="m">Karol Bagh · Electricity</div></div><div class="r"><span class="ns-status error">Critical</span>3 hr ago</div></div>
+        </div>
+        <p class="ns-footnote note">Summaries are shortened and never show names or exact addresses. <a class="ns-link mapbtn" style="color:var(--blue-ink)">View hotspot map<svg class="ns-ico"><use href="#i-chev"/></svg></a></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 CTA -->
+  <section class="sec subtle cta"><div class="wrap">
+    <h2 class="ns-headline">Your street deserves a fix.</h2>
+    <p class="ns-lead" style="margin-top:20px">It takes about a minute. You’ll get a complaint ID and can check its status any time.</p>
+    <div class="ctas"><a class="ns-btn ns-btn-primary ns-btn-lg">File a complaint</a><a class="ns-btn ns-btn-secondary ns-btn-lg">How it works</a></div>
+    <div class="track">
+      <label class="ns-input pill"><svg class="ns-ico"><use href="#i-search"/></svg><input class="ns-mono" placeholder="CMP-20261121-0004" aria-label="Complaint ID"><span class="go" aria-label="Track"><svg class="ns-ico"><use href="#i-arrow"/></svg></span></label>
+      <p class="ns-footnote">Already filed one? Enter its complaint ID.</p>
+    </div>
+  </div></section>
+
+  <!-- 9 FOOTER -->
+  <footer class="pb-foot"><div class="wrap">
+    <div class="note">Department agents, tickets and crews are simulated for demonstration. Complaint summaries shown publicly are anonymised.</div>
+    <div class="grid">
+      <div><h5>Nagrik Sahayak</h5><ul><li>A multi-department civic grievance system built on the Agent2Agent protocol.</li></ul></div>
+      <div><h5>Citizens</h5><ul><li>File a complaint</li><li>Track a complaint</li><li>How it works</li></ul></div>
+      <div><h5>Operators</h5><ul><li>Workspace</li><li>Agent directory</li><li>Hotspot map</li></ul></div>
+      <div><h5>Project</h5><ul><li>About</li><li>Evaluation</li><li>Source code</li></ul></div>
+    </div>
+    <div class="base"><span>B.Tech IT minor project · ADGIPS, GGSIPU</span><span>Delhi, India</span></div>
+  </div></footer>
+
+  <div class="pb-sticky"><a class="ns-btn ns-btn-secondary">Track</a><a class="ns-btn ns-btn-primary">File a complaint</a></div>
+
+  <div class="pb-sheet">
+    <div class="hd"><a class="pb-logo"><svg class="ns-ico"><use href="#i-landmark"/></svg>Nagrik Sahayak</a><span class="pb-menu" style="display:grid" aria-label="Close menu"><svg class="ns-ico"><use href="#i-x"/></svg></span></div>
+    <nav><a>How it works</a><a>Departments</a><a>Track a complaint</a><a>About</a></nav>
+    <div class="sub">For operators<a>Open the workspace</a></div>
+    <div class="ft"><a class="ns-btn ns-btn-primary ns-btn-lg">File a complaint</a><a class="ns-btn ns-btn-secondary ns-btn-lg">Sign in</a></div>
+  </div>
+</div>
+</template>
+
+<template id="tpl-states">
+<div class="bd-col"><div class="bd-cap"><b>Activity</b> loading</div>
+  <div class="frame" style="width:380px"><div class="screen pb" style="padding:20px">
+    <div class="feedhd" style="display:flex;justify-content:space-between;margin-bottom:12px"><h3 class="ns-title3">Latest</h3></div>
+    <div class="ns-list inset">
+      <div class="ns-item"><span class="ic ns-skel"></span><div><div class="ns-skel" style="height:12px;width:70%"></div><div class="ns-skel" style="height:10px;width:40%;margin-top:8px"></div></div><div class="ns-skel" style="height:10px;width:60px"></div></div>
+      <div class="ns-item"><span class="ic ns-skel"></span><div><div class="ns-skel" style="height:12px;width:60%"></div><div class="ns-skel" style="height:10px;width:30%;margin-top:8px"></div></div><div class="ns-skel" style="height:10px;width:60px"></div></div>
+      <div class="ns-item"><span class="ic ns-skel"></span><div><div class="ns-skel" style="height:12px;width:75%"></div><div class="ns-skel" style="height:10px;width:45%;margin-top:8px"></div></div><div class="ns-skel" style="height:10px;width:60px"></div></div>
+    </div>
+  </div></div></div>
+<div class="bd-col"><div class="bd-cap"><b>Activity</b> empty</div>
+  <div class="frame" style="width:380px"><div class="screen pb" style="padding:20px">
+    <h3 class="ns-title3" style="margin-bottom:12px">Latest</h3>
+    <div style="text-align:center;padding:36px 20px;border:1px solid var(--separator);border-radius:var(--radius-md)">
+      <svg class="ns-ico" style="width:28px;height:28px;stroke-width:1.25;color:var(--ink-tertiary)"><use href="#i-sparkle"/></svg>
+      <div style="font-size:17px;font-weight:600;margin-top:10px">No complaints yet today</div>
+      <div class="ns-footnote" style="margin-top:4px">Be the first — it takes about a minute.</div>
+      <a class="ns-btn ns-btn-primary ns-btn-sm" style="margin-top:16px">File a complaint</a>
+    </div>
+  </div></div></div>
+<div class="bd-col"><div class="bd-cap"><b>Activity</b> error</div>
+  <div class="frame" style="width:380px"><div class="screen pb" style="padding:20px">
+    <h3 class="ns-title3" style="margin-bottom:12px">Latest</h3>
+    <div style="text-align:center;padding:36px 20px;border:1px solid var(--separator);border-radius:var(--radius-md)">
+      <svg class="ns-ico" style="width:28px;height:28px;stroke-width:1.25;color:var(--ink-tertiary)"><use href="#i-wifi"/></svg>
+      <div style="font-size:17px;font-weight:600;margin-top:10px">Live activity is unavailable</div>
+      <div class="ns-footnote" style="margin-top:4px">Filing and tracking still work.</div>
+      <a class="ns-btn ns-btn-secondary ns-btn-sm" style="margin-top:16px">Try again</a>
+    </div>
+  </div></div></div>
+<div class="bd-col"><div class="bd-cap"><b>Track field</b> focus · invalid · not found · success</div>
+  <div class="frame" style="width:400px"><div class="screen pb" style="padding:20px;display:flex;flex-direction:column;gap:18px">
+    <div class="ns-field" style="max-width:none"><div class="ns-input pill is-focus" style="padding-right:6px"><svg class="ns-ico"><use href="#i-search"/></svg><input class="ns-mono" value="CMP-20261121-"><span style="width:40px;height:40px;border-radius:50%;background:var(--primary);color:var(--on-primary);display:grid;place-items:center"><svg class="ns-ico"><use href="#i-arrow"/></svg></span></div></div>
+    <div class="ns-field" style="max-width:none"><div class="ns-input pill is-error"><svg class="ns-ico"><use href="#i-search"/></svg><input class="ns-mono" value="CMP-2026-4"></div><div class="ns-help is-error" style="padding-left:16px">Complaint IDs look like CMP-20261121-0004.</div></div>
+    <div class="ns-field" style="max-width:none"><div class="ns-input pill"><svg class="ns-ico"><use href="#i-search"/></svg><input class="ns-mono" value="CMP-20261121-0999"></div><div class="ns-help" style="padding-left:16px">We couldn’t find that complaint. <a class="ns-link" style="color:var(--blue-ink)">File a new one</a></div></div>
+    <div class="ns-field" style="max-width:none"><div class="ns-input pill"><svg class="ns-ico"><use href="#i-search"/></svg><input class="ns-mono" value="CMP-20261121-0004"></div><div class="ns-help" style="padding-left:16px"><span class="ns-status done">Found — opening status</span></div></div>
+  </div></div></div>
+<div class="bd-col"><div class="bd-cap"><b>Toast</b> copied ID</div>
+  <div class="frame" style="width:380px"><div class="screen pb" style="padding:28px;background:var(--bg-subtle);display:grid;place-items:center">
+    <div class="ns-toast"><svg class="ns-ico" style="color:var(--green)"><use href="#i-ccheck"/></svg>Complaint ID copied</div>
+  </div></div></div>
+</template>
+
+<div class="bd-wrap" id="spec"><div class="spec">
+  <h2>What changed in v2</h2>
+  <p>Content, sections, order, flows and data sources are unchanged from v1. Only the visual language changed, plus three small layout refinements:</p>
+  <ul>
+    <li><b>Hero</b> centres the copy and places a product composition beneath it (a desktop complaint window and a phone showing the Concierge chat), in place of the photo collage with floating cards. The product itself is the hero image.</li>
+    <li><b>AI section</b> moves from a dark block to a white canvas on a light grey section, with a left-to-right flow and the five-step execution timeline built into the canvas.</li>
+    <li><b>Departments</b> are separated by hairlines instead of cards, and are told apart by icon and name rather than colour. The hotspot map is monochrome.</li>
+  </ul>
+  <p>Colour appears only for status: green done, blue active, orange pending, red error — always with a word next to the dot.</p>
+
+  <h2>Sections (numbers match the low-fi)</h2>
+  <table>
+    <tr><th>#</th><th>Section</th><th>Content</th><th>Source</th></tr>
+    <tr><td>1</td><td>Navigation</td><td>Logo · How it works · Departments · Track a complaint · About · Sign in · File a complaint (black pill)</td><td>Static</td></tr>
+    <tr><td>2</td><td>Hero</td><td>Agent status line, headline (black + grey continuation), sub-line, two pills, three trust points, product composition</td><td>Agent count from <code>/api/agents</code>; falls back to “Delhi civic grievance platform”</td></tr>
+    <tr><td>3</td><td>Impact statistics</td><td>4 agents · 85% · 5 of 6 · 100%, with source line</td><td>Real figures from <code>evaluate.py</code> (README §7)</td></tr>
+    <tr><td>4</td><td>How it works</td><td>4 steps, each with icon, title, text and a small product vignette</td><td>Static</td></tr>
+    <tr><td>5</td><td>Department showcase</td><td>4 columns: icon, name, code, scope, issue types, online status; “new departments join on their own” line</td><td>Issue names from <code>agents/domain/*.py</code>; buildable from <code>/api/agents</code></td></tr>
+    <tr><td>6</td><td>AI-powered explanation</td><td>Workflow canvas (6 nodes, 5 edges, labels, execution timeline) + 3 capabilities</td><td>Static illustration (always complete)</td></tr>
+    <tr><td>7</td><td>Impact / activity</td><td>Monochrome hotspot map + top 3; latest 5 complaints as a grouped list</td><td><code>/api/heatmap</code>, <code>/api/complaints</code></td></tr>
+    <tr><td>8</td><td>CTA</td><td>Headline, two pills, track-by-ID field</td><td>Validates locally, routes to <code>/track/:id</code></td></tr>
+    <tr><td>9</td><td>Footer</td><td>Simulation disclosure, three link groups, project line</td><td>Static</td></tr>
+  </table>
+
+  <h2>Component hierarchy</h2>
+<pre>LandingPage
+├── PublicNav            Logo · NavLinks · Link("Sign in") · Button(primary, sm) · MenuButton(mobile)
+│   └── MobileMenuSheet  LargeNavLinks · OperatorLink · Button(primary, lg) · Button(secondary, lg)
+├── Hero                 AgentStatusLine(LiveDot) · Display · Lead · ButtonGroup · TrustList
+│   └── ProductStage     AppWindow(ComplaintHeader · Status · Priority · GroupedList(DepartmentRow ×2) · Plan · ExecutionTimeline)
+│                        Phone(ChatThread → Bubble ×3 · TypingIndicator · Composer)
+├── ImpactStats          Stat ×4 · Footnote
+├── HowItWorks           SectionHead · Step ×4 (Number · Icon · Title3 · Text · Vignette)
+├── DepartmentShowcase   SectionHead · DepartmentColumn ×n (Icon · Title3 · Code · Scope · IssueList · Status) · NewAgentLine
+├── AiExplainer          SectionHead · WorkflowCanvas(AgentNode ×6 · Edge ×5 · EdgeLabel ×4 · HorizontalTimeline) | WorkflowChain(mobile) · Feature ×3
+├── CityActivity         SectionHead · HotspotMap(Pin ×3) · HotspotList · ActivityList(GroupedList → ActivityRow ×5 | Skeleton | Empty | Error)
+├── ClosingCta           Headline · Lead · ButtonGroup · TrackField(pill input + round submit)
+├── PublicFooter
+└── MobileStickyActions  Button(secondary) · Button(primary)</pre>
+
+  <h2>Navigation behaviour</h2>
+  <ul>
+    <li><b>Desktop:</b> 52px translucent nav (white at 72% with background blur and a hairline). Links centred, actions right. Anchor links smooth-scroll; Track and About are routes.</li>
+    <li><b>Mobile (&lt; 768px):</b> 48px nav with a menu button that opens a full-screen sheet with large links (focus trapped, Esc / ✕ closes, scroll locked). A translucent sticky bar keeps Track and File a complaint one tap away; it hides while the closing CTA is on screen.</li>
+    <li>Every “File a complaint” goes to <code>/file</code>; every “Track” to <code>/track</code> or <code>/track/:id</code>. Sign in goes to <code>/signin</code> (see open questions).</li>
+  </ul>
+
+  <h2>States</h2>
+  <table>
+    <tr><th>Element</th><th>Loading</th><th>Empty</th><th>Error</th><th>Success</th></tr>
+    <tr><td>Agent status line</td><td>“Delhi civic grievance platform”, no dot</td><td>—</td><td>Same fallback; never “0 agents”</td><td>Green dot · “4 department agents online”</td></tr>
+    <tr><td>Activity list</td><td>3 shimmering skeleton rows</td><td>Icon, one line, File button</td><td>“Live activity is unavailable” + Try again; filing still works</td><td>Latest 5, refreshes every 30s</td></tr>
+    <tr><td>Hotspot map</td><td>Grey map, skeleton list</td><td>Map without heat, “No hotspots yet”</td><td>Hide map, keep list</td><td>Heat + top 3</td></tr>
+    <tr><td>Track field</td><td>Round button shows a small spinner</td><td>Button hidden until text entered</td><td>Invalid format (inline) · Not found (offer to file)</td><td>Routes to <code>/track/:id</code></td></tr>
+  </table>
+
+  <h2>Interactions and motion</h2>
+  <ul>
+    <li>Content fades up 12px as sections enter view (<code>duration-slow</code>, once). The product stage settles in after the headline; nothing loops except the live dots.</li>
+    <li>Buttons scale to 0.97 when pressed; hover darkens or lightens one step. Links underline on hover.</li>
+    <li>The canvas’s active edge animates fine dashes only while visible; the active dot breathes. With reduced motion both are static.</li>
+    <li>The track field accepts pasted IDs with spaces or lowercase and normalises them; Enter submits.</li>
+    <li>Copying an ID anywhere shows a glass toast for 2s.</li>
+  </ul>
+
+  <h2>Responsive rules</h2>
+  <ul>
+    <li>Content width 980px for text, 1180px for grids and the product stage. Section padding 120px desktop, 80px phone.</li>
+    <li>Phone: display 80 → 44px, headline 56 → 36px; product stage shows only the phone; stats 2×2; steps stack without vignettes; departments stack with issue chips; the canvas becomes a vertical chain with a vertical timeline; the map is reached via a link.</li>
+  </ul>
+
+  <h2>Accessibility</h2>
+  <ul>
+    <li>Body text is <code>#1D1D1F</code> on white (16.8:1). Small secondary text uses <code>#6E6E73</code> (4.9:1). The requested <code>#86868B</code> is 3.6:1 on white, so it is reserved for large text (the grey half of headlines), placeholders and icons.</li>
+    <li>Focus ring: 3px blue at 60% opacity, 2px offset, on every control.</li>
+    <li>Status is never colour alone — dot plus word, everywhere.</li>
+  </ul>
+
+  <h2>Open questions</h2>
+  <ul>
+    <li><span class="flag">Needs backend</span> <b>Sign in</b> still has no backend support (no users or authentication).</li>
+    <li><b>Photography.</b> v2 uses the product as the hero image, which needs no photos. If you want photography, the best place is a full-width image between “How it works” and “Departments”.</li>
+    <li><b>Public activity.</b> Anonymised list vs aggregate counts only.</li>
+  </ul>
+</div></div>
+
+<script>(function(){var t=document.getElementById('tpl-states');document.getElementById('states').appendChild(t.content.cloneNode(true));})();</script>
+<script src="shared/board.js?v=2"></script>
+</body>
+</html>

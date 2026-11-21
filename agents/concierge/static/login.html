@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in · Nagrik Sahayak</title>
+<style>
+:root{
+  --bg:#f4f2ee; --panel:#ffffff; --ink:#1b2430; --muted:#6b7280; --line:#e4e0d8;
+  --brand:#0f5c5c; --brand-soft:#e3f0ee; --accent:#d9822b; --bad:#c53030;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:14px;padding:12px 20px;background:var(--brand);color:#fff}
+header .logo{width:34px;height:34px;border-radius:9px;background:#fff2;display:grid;place-items:center;font-weight:700;flex:none}
+header h1{font-size:17px;margin:0;font-weight:650;letter-spacing:.2px}
+header small{opacity:.8;display:block;font-size:12px}
+main{flex:1;display:grid;place-items:center;padding:24px 16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;width:100%;max-width:400px;overflow:hidden}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;background:none;border:0;padding:13px;font:inherit;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button.on{color:var(--brand);border-bottom-color:var(--brand)}
+form{display:none;flex-direction:column;gap:12px;padding:20px}
+form.on{display:flex}
+label{font-size:13px;font-weight:600;color:var(--muted);display:flex;flex-direction:column;gap:5px}
+input{padding:11px 14px;border:1px solid var(--line);border-radius:10px;font:inherit;color:var(--ink);outline:none}
+input:focus{border-color:var(--brand)}
+button.go{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:12px;font:inherit;font-weight:600;cursor:pointer;margin-top:4px}
+button.go:disabled{opacity:.6;cursor:wait}
+.err{color:var(--bad);font-size:13.5px;min-height:1.2em;margin:0}
+.note{font-size:12.5px;color:var(--muted);margin:0}
+.demo{border-top:1px solid var(--line);padding:14px 20px;font-size:13px}
+.demo summary{cursor:pointer;color:var(--muted);font-weight:600}
+.demo .u{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{font-family:var(--mono);font-size:12px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 10px;cursor:pointer;color:var(--ink)}
+.chip:hover{border-color:var(--brand);color:var(--brand)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">A2A</div>
+  <div><h1>Nagrik Sahayak — Citizen Grievance System</h1>
+  <small>Sign in as a citizen, a department officer or an admin</small></div>
+</header>
+<main>
+  <div class="card">
+    <div class="tabs">
+      <button data-t="login" class="on" type="button">Sign in</button>
+      <button data-t="register" type="button">New citizen? Register</button>
+    </div>
+    <form id="login" class="on">
+      <label>Username <input name="username" autocomplete="username" required autofocus></label>
+      <label>Password <input name="password" type="password" autocomplete="current-password" required></label>
+      <p class="err" id="login-err" role="alert"></p>
+      <button class="go">Sign in</button>
+    </form>
+    <form id="register">
+      <label>Your name <input name="display_name" autocomplete="name" maxlength="60"></label>
+      <label>Username <input name="username" autocomplete="username" required pattern="[a-z0-9_.\-]{3,32}" title="3-32 lowercase letters, digits, _ . -"></label>
+      <label>Password <input name="password" type="password" autocomplete="new-password" required minlength="6"></label>
+      <p class="note">Registration creates a <b>citizen</b> account. Department officer accounts are created by the system for each department agent.</p>
+      <p class="err" id="register-err" role="alert"></p>
+      <button class="go">Create account</button>
+    </form>
+    <details class="demo">
+      <summary>Demo accounts</summary>
+      <div class="note" style="margin-top:6px">Click a username to fill it in. Passwords are in the README / your <code>.env</code>.</div>
+      <div class="u">
+        <button class="chip" type="button">citizen1</button>
+        <button class="chip" type="button">water_officer</button>
+        <button class="chip" type="button">electricity_officer</button>
+        <button class="chip" type="button">roads_officer</button>
+        <button class="chip" type="button">sanitation_officer</button>
+        <button class="chip" type="button">admin</button>
+      </div>
+      <div class="note" style="margin-top:8px">Every department agent discovered through its Agent Card gets a <code>&lt;department&gt;_officer</code> account.</div>
+    </details>
+  </div>
+</main>
+<script>
+const $=s=>document.querySelector(s);
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('form').forEach(f=>f.classList.toggle('on',f.id===b.dataset.t));
+  document.querySelector('form.on input').focus();
+});
+document.querySelectorAll('.demo .chip').forEach(c=>c.onclick=()=>{
+  document.querySelector('.tabs button[data-t=login]').click();
+  $('#login [name=username]').value=c.textContent; $('#login [name=password]').focus();
+});
+async function submit(form,url){
+  const err=$('#'+form.id+'-err'), btn=form.querySelector('button.go');
+  err.textContent=''; btn.disabled=true;
+  try{
+    const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(Object.fromEntries(new FormData(form)))});
+    const d=await r.json().catch(()=>({}));
+    if(r.ok){location.replace(d.redirect||'/');return;}
+    err.textContent=typeof d.detail==='string'?d.detail:'Please check the form and try again.';
+  }catch(e){err.textContent='Could not reach the server.';}
+  btn.disabled=false;
+}
+$('#login').onsubmit=e=>{e.preventDefault();submit(e.target,'/api/login');};
+$('#register').onsubmit=e=>{e.preventDefault();submit(e.target,'/api/register');};
+</script>
+</body>
+</html>

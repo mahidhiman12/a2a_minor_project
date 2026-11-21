@@ -69,3 +69,17 @@ NOMINATIM_EMAIL = os.getenv("NOMINATIM_EMAIL", "")  # optional contact, asked fo
 # Simulated processing delay of department back-ends (seconds), so the
 # submitted -> working -> completed transitions are visible.
 DEPT_DELAY = float(os.getenv("DEPT_DELAY", "0.6"))
+
+# ---- Login & roles (Citizen Concierge) --------------------------------------
+# Demo-grade auth: change these in .env for anything beyond a local demo.
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-only-change-me")          # signs the session cookie
+SESSION_HOURS = float(os.getenv("SESSION_HOURS", "8"))
+# Shared secret the Concierge sends as X-Service-Token to the department agents'
+# ticket REST endpoints. A2A traffic (agent card + JSON-RPC) never needs it.
+SERVICE_TOKEN = os.getenv("SERVICE_TOKEN", "dev-service-token-change-me")
+CONCIERGE_URL = os.getenv("CONCIERGE_URL", url("concierge"))
+# Demo account passwords. A specific DEMO_PASSWORD_<USERNAME> (e.g.
+# DEMO_PASSWORD_WATER_OFFICER) overrides the shared default for that account.
+DEMO_CITIZEN_PASSWORD = os.getenv("DEMO_CITIZEN_PASSWORD", "citizen123")
+DEMO_OFFICER_PASSWORD = os.getenv("DEMO_OFFICER_PASSWORD", "officer123")
+DEMO_ADMIN_PASSWORD = os.getenv("DEMO_ADMIN_PASSWORD", "admin123")

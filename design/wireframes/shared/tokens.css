@@ -1,0 +1,47 @@
+/* Nagrik Sahayak — tokens v2 (monochrome). Mirrors the design system's tokens.json. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root, [data-theme="light"] {
+  --bg: #FFFFFF;            /* main background */
+  --bg-subtle: #F5F5F7;     /* alternate sections, wells, sidebar */
+  --surface: #FFFFFF;       /* cards, lists, inputs */
+  --surface-raised: #FFFFFF;/* menus, sheets, popovers */
+  --fill: #E8E8ED;          /* grey buttons, segmented control track */
+  --fill-hover: #DCDCE1;
+  --separator: #E5E5EA;     /* hairlines */
+  --ink: #1D1D1F;           /* primary text */
+  --ink-secondary: #6E6E73; /* small secondary text (4.9:1 on white) */
+  --ink-tertiary: #86868B;  /* large secondary text, placeholders, icons (3.6:1) */
+  --black: #000000; --white: #FFFFFF;
+  --primary: #000000; --primary-hover: #2C2C2E; --on-primary: #FFFFFF;
+  --focus: #0071E3;
+  --green: #34C759; --green-ink: #1F7A35; --green-soft: #EAF7EE;
+  --blue: #007AFF;  --blue-ink: #0066CC;  --blue-soft: #EAF2FD;
+  --orange: #FF9500; --orange-ink: #C93400; --orange-soft: #FFF3E5;
+  --red: #FF3B30;   --red-ink: #D70015;   --red-soft: #FFEBEA;
+  --glass: rgba(255,255,255,.72);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.06);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,.12), 0 0 0 .5px rgba(0,0,0,.06);
+}
+[data-theme="dark"] {
+  --bg: #000000; --bg-subtle: #0F0F10; --surface: #1C1C1E; --surface-raised: #2C2C2E;
+  --fill: #2C2C2E; --fill-hover: #3A3A3C; --separator: #38383A;
+  --ink: #F5F5F7; --ink-secondary: #A1A1A6; --ink-tertiary: #8E8E93;
+  --primary: #F5F5F7; --primary-hover: #FFFFFF; --on-primary: #000000;
+  --focus: #0A84FF;
+  --green: #30D158; --green-ink: #30D158; --green-soft: #0F2A17;
+  --blue: #0A84FF;  --blue-ink: #409CFF;  --blue-soft: #0B2140;
+  --orange: #FF9F0A; --orange-ink: #FFB340; --orange-soft: #33230A;
+  --red: #FF453A;   --red-ink: #FF6961;   --red-soft: #3A1210;
+  --glass: rgba(22,22,23,.72);
+  --shadow-sm: 0 0 0 .5px rgba(255,255,255,.06); --shadow-md: 0 4px 16px rgba(0,0,0,.5); --shadow-lg: 0 12px 40px rgba(0,0,0,.6), 0 0 0 .5px rgba(255,255,255,.08);
+}
+:root {
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px; --space-6:24px; --space-8:32px; --space-10:40px; --space-12:48px; --space-16:64px; --space-20:80px; --space-30:120px;
+  --radius-sm:8px; --radius-md:12px; --radius-lg:18px; --radius-xl:28px; --radius-full:980px;
+  --duration-fast:150ms; --duration-base:250ms; --duration-slow:400ms; --ease:cubic-bezier(.25,.1,.25,1); --ease-spring:cubic-bezier(.2,.9,.3,1.1);
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
+}

@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin overview · Nagrik Sahayak</title>
+<style>
+:root{
+  --bg:#f4f2ee; --panel:#ffffff; --ink:#1b2430; --muted:#6b7280; --line:#e4e0d8;
+  --brand:#0f5c5c; --brand-soft:#e3f0ee; --accent:#d9822b;
+  --ok:#2f855a; --warn:#b7791f; --bad:#c53030; --crit:#9b2c2c;
+  --water:#2b6cb0; --electricity:#b7791f; --roads:#6b4f3a; --sanitation:#2f855a;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+header{display:flex;align-items:center;gap:14px;padding:12px 20px;background:var(--brand);color:#fff;flex-wrap:wrap}
+header .logo{width:34px;height:34px;border-radius:9px;background:#fff2;display:grid;place-items:center;font-weight:700;flex:none}
+header h1{font-size:17px;margin:0;font-weight:650;letter-spacing:.2px}
+header small{opacity:.8;display:block;font-size:12px}
+header .sp{flex:1}
+.who{display:flex;align-items:center;gap:10px;font-size:13px}
+.who button{color:#fff;background:#fff1;border:1px solid #fff5;border-radius:8px;padding:6px 10px;font:inherit;font-size:13px;cursor:pointer}
+main{padding:16px;max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.stat b{display:block;font-size:28px;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.stat.crit b{color:var(--crit)} .stat.ok b{color:var(--ok)} .stat.prog b{color:var(--warn)}
+h2.sec{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:4px 0 0;font-weight:600}
+.depts{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.dept{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--c);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;color:inherit;text-decoration:none}
+.dept:hover{border-color:var(--c)}
+.dept h3{margin:0;font-size:15px;display:flex;justify-content:space-between;gap:8px}
+.dept .org{font-size:12.5px;color:var(--muted)}
+.dept .nums{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.dept .nums b{display:block;font-size:19px;color:var(--ink);letter-spacing:0;font-variant-numeric:tabular-nums}
+.dept .go{font-size:13px;color:var(--brand);font-weight:600}
+.off{font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;background:#fed7d7;color:var(--crit);text-transform:uppercase}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;background:#fcfbf9}
+.tid{font-family:var(--mono);font-size:12px}
+.st{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em;background:#edf2f7;color:#4a5568}
+.st.IN_PROGRESS{background:#fefcbf;color:#975a16}.st.RESOLVED{background:#c6f6d5;color:#22543d}
+.empty{color:var(--muted);font-size:14px;padding:20px 16px}
+.sub{color:var(--muted);font-size:12px}
+@media (max-width:760px){
+  header{padding:12px 16px} main{padding:12px}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  thead{display:none} table,tbody,tr,td{display:block;width:100%}
+  tr{border-bottom:1px solid var(--line);padding:8px 4px}
+  td{border:0;padding:4px 12px 4px 110px;position:relative;min-height:26px}
+  td::before{content:attr(data-l);position:absolute;left:12px;top:6px;width:90px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">A2A</div>
+  <div><h1>Admin overview — all departments</h1>
+  <small>Departments are discovered from each agent's Agent Card; new agents appear here automatically</small></div>
+  <div class="sp"></div>
+  <div class="who"><span id="me"></span><button id="logout" type="button">Log out</button></div>
+</header>
+<main>
+  <section class="stats" aria-label="All departments">
+    <div class="stat"><b id="s-open">–</b><span>Open</span></div>
+    <div class="stat prog"><b id="s-prog">–</b><span>In progress</span></div>
+    <div class="stat ok"><b id="s-res">–</b><span>Resolved today</span></div>
+    <div class="stat crit"><b id="s-crit">–</b><span>Critical (unresolved)</span></div>
+  </section>
+  <h2 class="sec">Department dashboards</h2>
+  <section class="depts" id="depts"><div class="empty">Discovering department agents…</div></section>
+  <h2 class="sec">All complaints <span style="text-transform:none;letter-spacing:0;font-weight:400">· last known combined status</span></h2>
+  <section class="card" id="complaints"><div class="empty">Loading…</div></section>
+</main>
+<script>
+const $=s=>document.querySelector(s);
+const DONE=['RESOLVED','CLOSED'];
+const KNOWN_COLORS={water:'var(--water)',electricity:'var(--electricity)',roads:'var(--roads)',sanitation:'var(--sanitation)'};
+function color(k){if(KNOWN_COLORS[k])return KNOWN_COLORS[k];let h=0;for(const c of k)h=(h*31+c.charCodeAt(0))%360;return `hsl(${h} 45% 40%)`;}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function isToday(iso){return iso&&new Date(iso).toDateString()===new Date().toDateString();}
+async function api(url,opt){const r=await fetch(url,opt);if(r.status===401){location.replace('/login');throw new Error('logged out');}
+  const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.detail||r.statusText);return d;}
+$('#logout').onclick=async()=>{await fetch('/api/logout',{method:'POST'});location.replace('/login');};
+api('/api/me').then(u=>$('#me').textContent=u.display_name);
+
+function counts(ts){const p=ts.filter(t=>!t.duplicate_of);return{
+  open:p.filter(t=>['OPEN','ASSIGNED'].includes(t.ticket_status)).length,
+  prog:p.filter(t=>t.ticket_status==='IN_PROGRESS').length,
+  res:p.filter(t=>DONE.includes(t.ticket_status)&&isToday(t.updated_at)).length,
+  crit:p.filter(t=>t.priority==='CRITICAL'&&!DONE.includes(t.ticket_status)).length,total:p.length};}
+
+async function load(){
+  loadComplaints().catch(e=>{if(e.message!=='logged out')$('#complaints').innerHTML=`<div class="empty">Could not load: ${esc(e.message)}</div>`;});
+  const depts=await api('/api/departments');
+  const res=await Promise.all(depts.map(d=>api(`/api/dept/${encodeURIComponent(d.key)}/tickets`).then(x=>({d,c:counts(x.tickets)})).catch(e=>({d,err:e.message}))));
+  const tot={open:0,prog:0,res:0,crit:0};
+  res.forEach(r=>{if(r.c)for(const k in tot)tot[k]+=r.c[k];});
+  $('#s-open').textContent=tot.open;$('#s-prog').textContent=tot.prog;$('#s-res').textContent=tot.res;$('#s-crit').textContent=tot.crit;
+  $('#depts').innerHTML=res.length?res.map(({d,c,err})=>`<a class="dept" style="--c:${color(d.key)}" href="/dept/${encodeURIComponent(d.key)}">
+    <h3><span>${esc(d.key[0].toUpperCase()+d.key.slice(1))}</span>${err?'<span class="off">unreachable</span>':''}</h3>
+    <div class="org">${esc(d.organisation)} · login <code>${esc(d.key)}_officer</code></div>
+    ${c?`<div class="nums"><div><b>${c.open}</b>open</div><div><b>${c.prog}</b>in prog.</div><div><b>${c.crit}</b>critical</div><div><b>${c.total}</b>total</div></div>`:`<div class="sub">${esc(err)}</div>`}
+    <span class="go">Open dashboard →</span></a>`).join(''):'<div class="empty">No department agents are online.</div>';
+}
+async function loadComplaints(){
+  const cs=await api('/api/complaints');
+  $('#complaints').innerHTML=cs.length?`<table><thead><tr><th>Complaint</th><th>Citizen</th><th>Summary</th><th>Location</th><th>Status</th></tr></thead><tbody>${cs.map(c=>`<tr>
+    <td data-l="Complaint"><span class="tid">${esc(c.complaint_id)}</span>${c.composite?'<div class="sub">multi-department</div>':''}</td>
+    <td data-l="Citizen">${esc(c.citizen||'—')}</td>
+    <td data-l="Summary">${esc((c.summary||'').slice(0,90))}</td>
+    <td data-l="Location">${esc(c.location||'')}</td>
+    <td data-l="Status"><span class="st ${esc(c.overall_status)}">${esc((c.overall_status||'').replace('_',' '))}</span></td></tr>`).join('')}</tbody></table>`
+    :'<div class="empty">No complaints yet.</div>';
+}
+load().catch(e=>{if(e.message!=='logged out')$('#depts').innerHTML=`<div class="empty">Could not load: ${esc(e.message)}</div>`;});
+</script>
+</body>
+</html>

@@ -8,6 +8,7 @@ Agent Card. They share NO state with each other or with the orchestrator.
 from __future__ import annotations
 
 import asyncio
+import hmac
 import json
 import logging
 import random
@@ -15,8 +16,8 @@ import sqlite3
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
 from common import config
@@ -57,6 +58,13 @@ class TicketUpdate(BaseModel):
     note: str | None = None
 
 
+def require_service_token(x_service_token: str | None = Header(None)):
+    """Ticket REST endpoints are for the Concierge only (it sends the shared token on
+    behalf of a logged-in officer). A2A endpoints never use this."""
+    if not x_service_token or not hmac.compare_digest(x_service_token, config.SERVICE_TOKEN):
+        raise HTTPException(401, "X-Service-Token header missing or invalid")
+
+
 def build_domain_app(spec: DomainSpec) -> FastAPI:
     app = FastAPI(title=spec.name)
     db_path = config.DB_DIR / f"{spec.key}.db"
@@ -80,6 +88,9 @@ def build_domain_app(spec: DomainSpec) -> FastAPI:
                 zone_office TEXT, crew TEXT, created_at TEXT, eta TEXT,
                 complaint_ref TEXT, related TEXT, duplicate_of TEXT, notes TEXT);
             """)
+            # migration: last status change time (for "resolved today" on the dashboard)
+            if "updated_at" not in [r[1] for r in c.execute("PRAGMA table_info(tickets)")]:
+                c.execute("ALTER TABLE tickets ADD COLUMN updated_at TEXT")
             if c.execute("SELECT COUNT(*) FROM assets").fetchone()[0] == 0:
                 rnd = random.Random(spec.key)  # deterministic seed per department
                 for i, (loc, district) in enumerate(LOCALITIES.items()):
@@ -158,12 +169,16 @@ def build_domain_app(spec: DomainSpec) -> FastAPI:
             if existing:
                 notes.append(f"Linked to existing ticket {existing['ticket_id']}")
             status = "ASSIGNED" if asset else "OPEN"
-            c.execute("INSERT INTO tickets VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (
-                ticket_id, issue_type, locality, sub.get("description", ""), priority,
-                existing["status"] if existing else status, asset_id, office, crew,
-                now.isoformat(), existing["eta"] if existing else eta,
-                sub.get("complaint_id"), json.dumps(sub.get("related_departments", [])),
-                existing["ticket_id"] if existing else None, "; ".join(notes)))
+            c.execute(
+                "INSERT INTO tickets(ticket_id, issue_type, locality, description, priority, "
+                "status, asset_id, zone_office, crew, created_at, eta, complaint_ref, related, "
+                "duplicate_of, notes, updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (
+                    ticket_id, issue_type, locality, sub.get("description", ""), priority,
+                    existing["status"] if existing else status, asset_id, office, crew,
+                    now.isoformat(), existing["eta"] if existing else eta,
+                    sub.get("complaint_id"), json.dumps(sub.get("related_departments", [])),
+                    existing["ticket_id"] if existing else None, "; ".join(notes),
+                    now.isoformat()))
             row = c.execute("SELECT * FROM tickets WHERE ticket_id=?", (ticket_id,)).fetchone()
             return ticket_row_to_result(row, duplicate=bool(existing))
 
@@ -206,14 +221,21 @@ def build_domain_app(spec: DomainSpec) -> FastAPI:
     )
     mount_a2a(app, card, handle, refresh=refresh)
 
-    # ---------------- operator REST API + console ----------------
-    @app.get("/tickets")
+    # ---------------- operator REST API (service token) ----------------
+    # Extra fields for the dashboard only; the A2A ticket artifact is unchanged.
+    def dashboard_row(r: sqlite3.Row) -> dict:
+        return {**ticket_row_to_result(r, bool(r["duplicate_of"])),
+                "description": r["description"], "complaint_ref": r["complaint_ref"],
+                "related_departments": json.loads(r["related"] or "[]"),
+                "updated_at": r["updated_at"] or r["created_at"]}
+
+    @app.get("/tickets", dependencies=[Depends(require_service_token)])
     def list_tickets():
         with db() as c:
             rows = c.execute("SELECT * FROM tickets ORDER BY created_at DESC").fetchall()
-        return [ticket_row_to_result(r, bool(r["duplicate_of"])) for r in rows]
+        return [dashboard_row(r) for r in rows]
 
-    @app.patch("/tickets/{ticket_id}")
+    @app.patch("/tickets/{ticket_id}", dependencies=[Depends(require_service_token)])
     def update_ticket(ticket_id: str, upd: TicketUpdate):
         if upd.status not in TICKET_STATUSES:
             raise HTTPException(400, f"status must be one of {TICKET_STATUSES}")
@@ -222,11 +244,12 @@ def build_domain_app(spec: DomainSpec) -> FastAPI:
             if not row:
                 raise HTTPException(404, "ticket not found")
             # Keep duplicates in sync with their parent ticket.
-            c.execute("UPDATE tickets SET status=?, notes=COALESCE(?, notes) "
+            c.execute("UPDATE tickets SET status=?, notes=COALESCE(?, notes), updated_at=? "
                       "WHERE ticket_id=? OR duplicate_of=?",
-                      (upd.status, upd.note, ticket_id, ticket_id))
+                      (upd.status, upd.note, datetime.now(timezone.utc).isoformat(),
+                       ticket_id, ticket_id))
             row = c.execute("SELECT * FROM tickets WHERE ticket_id=?", (ticket_id,)).fetchone()
-        return ticket_row_to_result(row)
+        return dashboard_row(row)
 
     @app.get("/rules")
     def rules():
@@ -234,10 +257,10 @@ def build_domain_app(spec: DomainSpec) -> FastAPI:
                 "issue_types": [{"id": i.id, "priority": i.priority, "sla_hours": i.sla_hours}
                                 for i in spec.issues]}
 
-    @app.get("/console", response_class=HTMLResponse)
+    @app.get("/console")
     def console():
-        return CONSOLE_HTML.replace("{{NAME}}", spec.organisation).replace(
-            "{{STATUSES}}", json.dumps(TICKET_STATUSES))
+        """The operator console moved to the Concierge (login + role check)."""
+        return RedirectResponse(f"{config.CONCIERGE_URL}/dept/{spec.key}", status_code=307)
 
     @app.get("/health")
     def health():
@@ -245,23 +268,3 @@ def build_domain_app(spec: DomainSpec) -> FastAPI:
 
     return app
 
-
-CONSOLE_HTML = """<!doctype html><html><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{{NAME}} console</title>
-<style>body{font-family:system-ui,sans-serif;margin:24px;background:#f6f7f9;color:#1d2330}
-table{border-collapse:collapse;width:100%;background:#fff}th,td{padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:left;font-size:14px}
-th{background:#eef1f5}select{padding:4px}.dup{color:#888}</style></head><body>
-<h2>{{NAME}} &mdash; operator console</h2>
-<p>Tickets received from the Orchestrator over A2A. Change a status to simulate field work;
-the citizen's unified status updates automatically.</p>
-<table><thead><tr><th>Ticket</th><th>Issue</th><th>Locality</th><th>Priority</th><th>Crew</th><th>ETA</th><th>Status</th></tr></thead>
-<tbody id="t"></tbody></table>
-<script>
-const S={{STATUSES}};
-async function load(){const r=await fetch('tickets');const d=await r.json();
-document.getElementById('t').innerHTML=d.map(x=>`<tr class="${x.duplicate_of?'dup':''}"><td>${x.ticket_id}${x.duplicate_of?'<br><small>dup of '+x.duplicate_of+'</small>':''}</td><td>${x.issue_name}</td><td>${x.locality}</td><td>${x.priority}</td><td>${x.crew}</td><td>${(x.eta||'').slice(0,16).replace('T',' ')}</td>
-<td>${x.duplicate_of?x.ticket_status:`<select onchange="upd('${x.ticket_id}',this.value)">${S.map(s=>`<option ${s==x.ticket_status?'selected':''}>${s}</option>`).join('')}</select>`}</td></tr>`).join('')||'<tr><td colspan=7>No tickets yet</td></tr>';}
-async function upd(id,s){await fetch('tickets/'+id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:s})});load();}
-load();setInterval(load,4000);
-</script></body></html>"""

@@ -136,6 +136,10 @@
           {
             "key": "Content-Type",
             "value": "application/json"
+          },
+          {
+            "key": "X-Service-Token",
+            "value": "{{service_token}}"
           }
         ],
         "url": "http://127.0.0.1:8101/tickets/DJB-PASTE-ID",
@@ -146,7 +150,24 @@
       }
     },
     {
-      "name": "10. Concierge - chat (plain language)",
+      "name": "10. Concierge - log in as citizen1 (Postman keeps the session cookie)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "http://127.0.0.1:8000/api/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"citizen1\",\n  \"password\": \"citizen123\"\n}"
+        }
+      }
+    },
+    {
+      "name": "11. Concierge - chat (plain language)",
       "request": {
         "method": "POST",
         "header": [
@@ -161,6 +182,12 @@
           "raw": "{\n  \"message\": \"Road repair near Laxmi Nagar metro broke the water pipe\",\n  \"session_id\": \"postman\"\n}"
         }
       }
+    }
+  ],
+  "variable": [
+    {
+      "key": "service_token",
+      "value": "change-me-service-token"
     }
   ]
 }

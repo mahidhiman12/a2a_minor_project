@@ -245,11 +245,24 @@ async def _run(handler: TaskHandler, task: dict, store: TaskStore, agent_name: s
 # --------------------------------------------------------------------------
 # Client side
 # --------------------------------------------------------------------------
+_TLS_CONTEXT = None
+
+
+def _tls_context():
+    """httpx builds a new TLS context per client (~0.7 s on Windows, blocking the event
+    loop). Build it once and share it; requests and the wire format are unchanged."""
+    global _TLS_CONTEXT
+    if _TLS_CONTEXT is None:
+        import ssl
+        _TLS_CONTEXT = ssl.create_default_context()
+    return _TLS_CONTEXT
+
+
 class A2AClient:
     """Tiny async A2A client: discover agent cards and exchange JSON-RPC messages."""
 
     def __init__(self, timeout: float = 30.0, on_wire: Callable[[str, str, dict], None] | None = None):
-        self.http = httpx.AsyncClient(timeout=timeout)
+        self.http = httpx.AsyncClient(timeout=timeout, verify=_tls_context())
         self.on_wire = on_wire  # optional hook to record every request/response (tracing)
 
     async def get_card(self, base_url: str) -> dict:

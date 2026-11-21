@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Department dashboard · Nagrik Sahayak</title>
+<style>
+:root{
+  --bg:#f4f2ee; --panel:#ffffff; --ink:#1b2430; --muted:#6b7280; --line:#e4e0d8;
+  --brand:#0f5c5c; --brand-soft:#e3f0ee; --accent:#d9822b;
+  --ok:#2f855a; --warn:#b7791f; --bad:#c53030; --crit:#9b2c2c;
+  --water:#2b6cb0; --electricity:#b7791f; --roads:#6b4f3a; --sanitation:#2f855a;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+header{display:flex;align-items:center;gap:14px;padding:12px 20px;background:var(--brand);color:#fff;flex-wrap:wrap}
+header .logo{width:34px;height:34px;border-radius:9px;background:#fff2;display:grid;place-items:center;font-weight:700;flex:none}
+header h1{font-size:17px;margin:0;font-weight:650;letter-spacing:.2px}
+header small{opacity:.8;display:block;font-size:12px}
+header .sp{flex:1}
+.who{display:flex;align-items:center;gap:10px;font-size:13px}
+.who a,.who button{color:#fff;background:#fff1;border:1px solid #fff5;border-radius:8px;padding:6px 10px;font:inherit;font-size:13px;cursor:pointer;text-decoration:none}
+main{padding:16px;max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.stat b{display:block;font-size:28px;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.stat.crit b{color:var(--crit)} .stat.ok b{color:var(--ok)} .stat.prog b{color:var(--warn)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.card h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0;padding:12px 16px;border-bottom:1px solid var(--line);font-weight:600;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.card h2 small{text-transform:none;letter-spacing:0;font-weight:400}
+.filters{display:flex;gap:10px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line);font-size:13px;align-items:center}
+.filters label{display:flex;gap:6px;align-items:center;color:var(--muted)}
+select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:13px;background:#fff;color:var(--ink)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;background:#fcfbf9}
+.tid{font-family:var(--mono);font-size:12px}
+.sub{color:var(--muted);font-size:12px}
+.prio{font-size:11px;font-weight:700;padding:1px 7px;border-radius:6px;background:#edf2f7;white-space:nowrap}
+.prio.CRITICAL{background:#fed7d7;color:var(--crit)}.prio.HIGH{background:#feebc8;color:#9c4221}
+.st{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em;background:#edf2f7;color:#4a5568}
+.st.IN_PROGRESS{background:#fefcbf;color:#975a16}.st.RESOLVED,.st.CLOSED{background:#c6f6d5;color:#22543d}
+.rel{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:6px;margin:0 3px 3px 0;color:#fff}
+tr.dup td{background:#faf9f6}
+tr.dup td:first-child{padding-left:28px;position:relative}
+tr.dup td:first-child::before{content:"↳";position:absolute;left:10px;color:var(--muted)}
+.dupcount{font-size:11px;color:var(--muted);font-weight:600}
+.empty{color:var(--muted);font-size:14px;padding:24px 16px}
+.msg{font-size:13px;padding:10px 16px;display:none}
+.msg.on{display:block}.msg.bad{background:#fff5f5;color:var(--bad)}.msg.ok{background:#f0faf4;color:var(--ok)}
+select.saving{opacity:.5}
+@media (max-width:760px){
+  header{padding:12px 16px}
+  main{padding:12px}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  thead{display:none}
+  table,tbody,tr,td{display:block;width:100%}
+  tr{border-bottom:1px solid var(--line);padding:8px 4px}
+  td{border:0;padding:4px 12px 4px 116px;position:relative;min-height:26px}
+  td::before{content:attr(data-l);position:absolute;left:12px;top:6px;width:96px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+  tr.dup td:first-child{padding-left:116px}
+  tr.dup td:first-child::before{content:"↳ duplicate";left:12px;top:6px;color:var(--muted)}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">A2A</div>
+  <div><h1 id="title">Department dashboard</h1>
+  <small id="subtitle">Tickets this department agent received from the Orchestrator over A2A</small></div>
+  <div class="sp"></div>
+  <div class="who"><span id="me"></span><a id="back" href="/admin" hidden>← Admin overview</a><button id="logout" type="button">Log out</button></div>
+</header>
+<main>
+  <section class="stats" aria-label="Summary">
+    <div class="stat"><b id="s-open">–</b><span>Open</span></div>
+    <div class="stat prog"><b id="s-prog">–</b><span>In progress</span></div>
+    <div class="stat ok"><b id="s-res">–</b><span>Resolved today</span></div>
+    <div class="stat crit"><b id="s-crit">–</b><span>Critical (unresolved)</span></div>
+  </section>
+  <section class="card">
+    <h2><span>Tickets</span><small id="updated"></small></h2>
+    <div class="filters">
+      <label>Status <select id="f-status"><option value="">All</option><option value="active">Unresolved</option></select></label>
+      <label>Priority <select id="f-prio"><option value="">All</option><option>CRITICAL</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select></label>
+      <label>Locality <select id="f-loc"><option value="">All</option></select></label>
+      <span class="sub" id="count"></span>
+    </div>
+    <div class="msg" id="msg" role="status"></div>
+    <div id="tbl"></div>
+  </section>
+</main>
+<script>
+const $=s=>document.querySelector(s);
+const DEPT=decodeURIComponent(location.pathname.split('/')[2]||'');
+const STATUSES=['OPEN','ASSIGNED','IN_PROGRESS','RESOLVED','CLOSED'];
+const DONE=['RESOLVED','CLOSED'];
+const KNOWN_COLORS={water:'var(--water)',electricity:'var(--electricity)',roads:'var(--roads)',sanitation:'var(--sanitation)'};
+function color(k){if(KNOWN_COLORS[k])return KNOWN_COLORS[k];let h=0;for(const c of k)h=(h*31+c.charCodeAt(0))%360;return `hsl(${h} 45% 40%)`;}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function when(iso){if(!iso)return '';const d=new Date(iso);return d.toLocaleString([], {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}
+function isToday(iso){return iso&&new Date(iso).toDateString()===new Date().toDateString();}
+async function api(url,opt){const r=await fetch(url,opt);if(r.status===401){location.replace('/login');throw new Error('logged out');}
+  const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.detail||r.statusText);return d;}
+
+STATUSES.forEach(s=>$('#f-status').insertAdjacentHTML('beforeend',`<option>${s}</option>`));
+$('#logout').onclick=async()=>{await fetch('/api/logout',{method:'POST'});location.replace('/login');};
+['#f-status','#f-prio','#f-loc'].forEach(id=>$(id).onchange=render);
+
+let tickets=[];
+api('/api/me').then(u=>{$('#me').textContent=u.display_name+(u.role==='admin'?' (admin)':'');$('#back').hidden=u.role!=='admin';});
+
+function flash(text,kind){const m=$('#msg');m.textContent=text;m.className='msg on '+kind;clearTimeout(flash.t);flash.t=setTimeout(()=>m.className='msg',4000);}
+
+async function load(){
+  try{
+    const d=await api(`/api/dept/${encodeURIComponent(DEPT)}/tickets`);
+    $('#title').textContent=d.department.organisation+' — dashboard';
+    document.title=d.department.organisation+' · Dashboard';
+    tickets=d.tickets;
+    const locs=[...new Set(tickets.map(t=>t.locality))].sort(), cur=$('#f-loc').value;
+    $('#f-loc').innerHTML='<option value="">All</option>'+locs.map(l=>`<option ${l===cur?'selected':''}>${esc(l)}</option>`).join('');
+    $('#updated').textContent='Updated '+new Date().toLocaleTimeString();
+    render();
+  }catch(e){if(e.message!=='logged out'){$('#tbl').innerHTML=`<div class="empty">Could not load tickets: ${esc(e.message)}</div>`;}}
+}
+
+function render(){
+  // summary cards count unique problems (parents), not linked duplicates
+  const parents=tickets.filter(t=>!t.duplicate_of);
+  $('#s-open').textContent=parents.filter(t=>['OPEN','ASSIGNED'].includes(t.ticket_status)).length;
+  $('#s-prog').textContent=parents.filter(t=>t.ticket_status==='IN_PROGRESS').length;
+  $('#s-res').textContent=parents.filter(t=>DONE.includes(t.ticket_status)&&isToday(t.updated_at)).length;
+  $('#s-crit').textContent=parents.filter(t=>t.priority==='CRITICAL'&&!DONE.includes(t.ticket_status)).length;
+
+  const fs=$('#f-status').value, fp=$('#f-prio').value, fl=$('#f-loc').value;
+  const match=t=>(!fs||(fs==='active'?!DONE.includes(t.ticket_status):t.ticket_status===fs))&&(!fp||t.priority===fp)&&(!fl||t.locality===fl);
+  const ids=new Set(tickets.map(t=>t.ticket_id)), kids={};
+  tickets.filter(t=>t.duplicate_of&&ids.has(t.duplicate_of)).forEach(t=>(kids[t.duplicate_of]=kids[t.duplicate_of]||[]).push(t));
+  const tops=tickets.filter(t=>!t.duplicate_of||!ids.has(t.duplicate_of));
+  const shown=tops.filter(t=>match(t)||(kids[t.ticket_id]||[]).some(match));
+  $('#count').textContent=`${shown.length} of ${tops.length} tickets`;
+  if(!shown.length){$('#tbl').innerHTML=`<div class="empty">${tickets.length?'No tickets match these filters.':'No tickets yet. They appear here as soon as the Orchestrator routes a complaint to this department.'}</div>`;return;}
+  const row=(t,dup)=>`<tr class="${dup?'dup':''}">
+    <td data-l="Ticket"><span class="tid">${esc(t.ticket_id)}</span>${dup?`<div class="sub">duplicate of ${esc(t.duplicate_of)}</div>`:(kids[t.ticket_id]?`<div class="dupcount">+${kids[t.ticket_id].length} duplicate report(s)</div>`:'')}
+      ${t.complaint_ref?`<div class="sub">${esc(t.complaint_ref)}</div>`:''}</td>
+    <td data-l="Issue"><b>${esc(t.issue_name)}</b>${t.description?`<div class="sub">${esc(t.description.slice(0,120))}</div>`:''}</td>
+    <td data-l="Locality">${esc(t.locality)}<div class="sub">${esc(t.crew||'')}</div></td>
+    <td data-l="Priority"><span class="prio ${esc(t.priority)}">${esc(t.priority)}</span></td>
+    <td data-l="Related">${(t.related_departments||[]).length?t.related_departments.map(r=>`<span class="rel" style="background:${color(r)}">${esc(r)}</span>`).join(''):'<span class="sub">—</span>'}</td>
+    <td data-l="Created / ETA">${when(t.created_at)}<div class="sub">ETA ${when(t.eta)}</div></td>
+    <td data-l="Status">${dup?`<span class="st ${esc(t.ticket_status)}">${esc(t.ticket_status)}</span><div class="sub">follows parent</div>`
+      :`<select aria-label="Status of ${esc(t.ticket_id)}" data-id="${esc(t.ticket_id)}">${STATUSES.map(s=>`<option ${s===t.ticket_status?'selected':''}>${s}</option>`).join('')}</select>`}</td></tr>`;
+  $('#tbl').innerHTML=`<table><thead><tr><th>Ticket</th><th>Issue</th><th>Locality / crew</th><th>Priority</th><th>Related depts</th><th>Created / ETA</th><th>Status</th></tr></thead><tbody>${
+    shown.map(t=>row(t,false)+(kids[t.ticket_id]||[]).map(k=>row(k,true)).join('')).join('')}</tbody></table>`;
+  document.querySelectorAll('#tbl select[data-id]').forEach(s=>s.onchange=()=>update(s));
+}
+
+async function update(sel){
+  sel.classList.add('saving');sel.disabled=true;
+  try{
+    await api(`/api/dept/${encodeURIComponent(DEPT)}/tickets/${encodeURIComponent(sel.dataset.id)}`,
+      {method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:sel.value})});
+    flash(`${sel.dataset.id} set to ${sel.value}. The citizen's combined status updates on their next refresh.`,'ok');
+  }catch(e){flash('Update failed: '+e.message,'bad');}
+  await load();
+}
+load(); setInterval(()=>{if(!document.querySelector('#tbl select:focus'))load();},10000);
+</script>
+</body>
+</html>

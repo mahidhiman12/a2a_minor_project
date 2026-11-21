@@ -86,22 +86,75 @@ python run_all.py --reset
 ```
 On Windows you can double-click `start_windows.bat` instead.
 
-Then open **http://127.0.0.1:8000**.
+Then open **http://127.0.0.1:8000/login** and sign in with one of the demo accounts in section 4.
 
-| URL | What it shows |
-|---|---|
-| http://127.0.0.1:8000 | Citizen chat, with a live A2A trail, the Agent Cards and a list of all complaints |
-| http://127.0.0.1:8101/console | Water Board operator console (change ticket status here) |
-| http://127.0.0.1:8102/console | Electricity operator console |
-| http://127.0.0.1:8103/console | Roads operator console |
-| http://127.0.0.1:8101/.well-known/agent-card.json | A raw A2A Agent Card |
-| http://127.0.0.1:8001/docs | Orchestrator API (Swagger UI) |
+| URL | What it shows | Who can open it |
+|---|---|---|
+| http://127.0.0.1:8000/login | Login page, plus registration for new citizens | everyone |
+| http://127.0.0.1:8000/ | Citizen chat, with a live A2A trail, the Agent Cards, **My complaints** and a heatmap | citizens |
+| http://127.0.0.1:8000/dept/water | Water department dashboard (also `/dept/electricity`, `/dept/roads`, `/dept/sanitation`, …) | that department's officer, admin |
+| http://127.0.0.1:8000/admin | Admin overview of every department and every complaint | admin |
+| http://127.0.0.1:8101/.well-known/agent-card.json | A raw A2A Agent Card | everyone (A2A is never behind the login) |
+| http://127.0.0.1:8001/docs | Orchestrator API (Swagger UI) | everyone |
+
+The old operator consoles (`http://127.0.0.1:8101/console` and so on) now redirect to the department dashboards.
 
 Press **Ctrl+C** to stop all the agents.
 
 ---
 
-## 4. Choosing the "brain" (all free)
+## 4. Login & roles
+
+There is one login page at `/login`. Where you land after signing in depends on your role:
+
+| Role | Lands on | Can do |
+|---|---|---|
+| **citizen** | `/` (chat) | File complaints, see **only their own** complaints with a Registered → In progress → Resolved timeline, see the heatmap |
+| **officer** (one department) | `/dept/<department>` | See that department's tickets, filter them by status, priority and locality, and change their status |
+| **admin** | `/admin` | See an overview of every department and every complaint, and open any department dashboard |
+
+If you are already logged in, `/login` sends you to your own page. If you are logged out, every page sends you to `/login`. Opening another role's page returns **403** (for example a citizen on `/dept/water`, or the water officer on `/dept/roads`).
+
+### Demo accounts
+
+Accounts are created on startup if they don't already exist. The passwords come from `.env`; the defaults are in `.env.example`.
+
+| Username | Role | Default password (`.env` setting) |
+|---|---|---|
+| `citizen1` | citizen (Asha Verma) | `citizen123` (`DEMO_CITIZEN_PASSWORD`) |
+| `water_officer` | officer · water | `officer123` (`DEMO_OFFICER_PASSWORD`) |
+| `electricity_officer` | officer · electricity | `officer123` (`DEMO_OFFICER_PASSWORD`) |
+| `roads_officer` | officer · roads | `officer123` (`DEMO_OFFICER_PASSWORD`) |
+| `sanitation_officer` | officer · sanitation (only when the Sanitation agent runs) | `officer123` (`DEMO_OFFICER_PASSWORD`) |
+| `admin` | admin | `admin123` (`DEMO_ADMIN_PASSWORD`) |
+
+To give a single account its own password, set `DEMO_PASSWORD_<USERNAME>`, for example `DEMO_PASSWORD_WATER_OFFICER=...`. Passwords are read only when an account is first created. To change them later, delete `data/db/users.db` (or run `python run_all.py --reset`). New citizens can register themselves on the login page. Officer and admin accounts cannot self-register.
+
+### Department logins come from the Agent Cards
+
+The Concierge does not have a list of departments. It asks the Orchestrator's `/agents` endpoint, which reads each agent's Agent Card. For every department agent it finds there, the Concierge creates a `<department>_officer` login and serves a dashboard at `/dept/<department>`. Start the system with `--with-sanitation` and `sanitation_officer` and `/dept/sanitation` appear with **zero code changes**. The heatmap's department filter and the admin overview are built the same way.
+
+### How it works
+
+* **Users**: SQLite table `users` in `data/db/users.db` (`id, username, password_hash, role, department, display_name, created_at`). Passwords are hashed with PBKDF2-HMAC-SHA256 (200,000 iterations, 16-byte random salt per user, `hashlib`). Plain text is never stored.
+* **Session**: a cookie signed with `itsdangerous` (`SECRET_KEY` from `.env`). It is `HttpOnly`, `SameSite=Lax`, and expires after `SESSION_HOURS` (default 8). The cookie holds only the user id; the role is read from the database on every request.
+* **Endpoints**: `GET /login`, `POST /api/login`, `POST /api/logout`, `GET /api/me`, `POST /api/register` (citizens only).
+* **Complaint ownership**: the Concierge stores `complaint_owners(complaint_id, user_id)` in its own database. The A2A payload sent to the Orchestrator is unchanged.
+* **Department dashboards**: the browser only talks to the Concierge. The Concierge calls the department agent's `GET /tickets` and `PATCH /tickets/{id}` on the server side and adds the `X-Service-Token` header (`SERVICE_TOKEN` in `.env`). Without that header the agents return **401**, so nobody can change a ticket by calling `:8101` directly.
+* **Not behind the login**: the A2A endpoints (`/.well-known/agent-card.json` and JSON-RPC `POST /`) on every agent, including the Concierge, and the Orchestrator's REST API. Agent-to-agent traffic and `python evaluate.py` work exactly as before.
+
+### Limitations (demo-grade auth)
+
+This is enough for a demo, not for production. List these as limitations in the report:
+* **No HTTPS**: cookies and passwords travel in plain HTTP on localhost. The cookie is not marked `Secure`.
+* **No rate limiting or account lockout** on `/api/login`, so passwords can be brute-forced.
+* **One shared service token** for all department agents, no rotation. The Orchestrator's REST endpoints and all A2A endpoints are unauthenticated (agents trust anything on the local network).
+* No CSRF tokens (`SameSite=Lax` cookies only), no password reset, no email/OTP verification, and no audit log of who changed a ticket beyond the note on the ticket.
+* Sessions cannot be revoked before they expire, except by changing `SECRET_KEY`, which logs everyone out.
+
+---
+
+## 5. Choosing the "brain" (all free)
 
 Only the Concierge needs language understanding. Set `NLU_MODE` in `.env`, or switch it live from the dropdown in the top-right corner of the UI.
 
@@ -128,8 +181,9 @@ adk web --port 8080          # ADK dev UI at http://127.0.0.1:8080, choose "citi
 
 ---
 
-## 5. Demo script for the viva (about 5 minutes)
+## 6. Demo script for the viva (about 5 minutes)
 
+0. **Login & roles.** Open http://127.0.0.1:8000/login and sign in as `citizen1`. Show the user's name and the *Log out* button in the header. Point out that opening http://127.0.0.1:8000/dept/water as a citizen returns **403**.
 1. **Agent discovery.** Open the *Agent Cards* tab. Explain that the Orchestrator knows only three URLs, and that everything else (names, skills, endpoints) was read from each agent's `/.well-known/agent-card.json`.
 2. **Composite complaint.** Click the first sample chip: *"Road repair work near Laxmi Nagar metro… broke the water pipe"*. Point out:
    * the NLU detected `excavation_damage` (roads) and `water_pipe_burst` (water)
@@ -139,13 +193,14 @@ adk web --port 8080          # ADK dev UI at http://127.0.0.1:8080, choose "citi
 3. **Follow-up question.** Type *"There is a huge pothole on the main road"*. The Concierge asks for the locality. Answer *"Rohini"*.
 4. **Hinglish.** Type *"Rohini me bijli nahi hai subah se"*.
 5. **Duplicate detection.** Send the Laxmi Nagar complaint again. The new ticket is *linked to the existing ticket*.
-6. **Unified status.** Open http://127.0.0.1:8101/console and set the water ticket to `RESOLVED`. Back in the chat, type `status CMP-…`. Overall status becomes **in progress**. Resolve the roads ticket too and it becomes **resolved**.
-7. **Extensibility.** Stop the agents and run `python run_all.py --with-sanitation`. Type *"Garbage not collected in Rohini and the drain is blocked"*. A brand-new Sanitation agent gets a ticket, with **zero changes** to the Orchestrator or Concierge code.
+6. **Department dashboard and unified status.** Open a second browser window (or a private window, so the citizen stays logged in) and sign in as `water_officer`. The water dashboard shows the summary cards, the `DJB-…` ticket with **roads** listed under related departments, and the duplicate from step 5 grouped under its parent. Try http://127.0.0.1:8000/dept/roads: **403**. Set the water ticket to `RESOLVED`. Back in the citizen window, open **My complaints**: the timeline shows **In progress**. Sign in as `roads_officer` and resolve the roads ticket; the timeline moves to **Resolved**.
+   * Security point: `curl -X PATCH http://127.0.0.1:8101/tickets/DJB-…` without the service token returns **401**. Only the Concierge can change tickets, and only for a logged-in officer of that department.
+7. **Extensibility.** Stop the agents and run `python run_all.py --with-sanitation`. Type *"Garbage not collected in Rohini and the drain is blocked"*. A brand-new Sanitation agent gets a ticket, with **zero changes** to the Orchestrator or Concierge code. Log in as `sanitation_officer`: its login and dashboard were also created automatically from the Agent Card. The admin overview (`admin`) now shows four departments.
 8. **Validation.** Run `python evaluate.py` (results below).
 
 ---
 
-## 6. What actually goes over the wire (A2A)
+## 7. What actually goes over the wire (A2A)
 
 **Agent Card** (`GET http://127.0.0.1:8101/.well-known/agent-card.json`, shortened):
 ```json
@@ -184,7 +239,7 @@ The A2A protocol is implemented by hand in `common/a2a.py` (~300 lines) rather t
 
 ---
 
-## 7. Validation results (`python evaluate.py`, rules mode)
+## 8. Validation results (`python evaluate.py`, rules mode)
 
 | Metric | Dev set (45, 15 multi-dept) | **Held-out test set (20, 6 multi-dept)** |
 |---|---|---|
@@ -202,7 +257,7 @@ Unit and protocol tests: `python -m pytest -q` (7 tests: Agent Card fields, task
 
 ---
 
-## 8. Any place in Delhi (free geocoding)
+## 9. Any place in Delhi (free geocoding)
 
 Citizens are not limited to the 20 built-in localities. Any place name ("Rajouri Garden", "kamla nagar me…") is looked up with **OpenStreetMap Nominatim** (free, no API key) in `common/geocode.py`:
 
@@ -213,15 +268,15 @@ Citizens are not limited to the 20 built-in localities. Any place name ("Rajouri
 
 Optional settings: `GEOCODER=nominatim|off`, `NOMINATIM_EMAIL=you@example.com` (contact address the policy asks for), `NOMINATIM_URL` (for a self-hosted server).
 
-## 9. Adding a new department
+## 10. Adding a new department
 
 1. Copy `agents/domain/sanitation.py`. Give it a `key`, a `ticket_prefix` and its `issues` (skills).
 2. Run it on a new port: `uvicorn agents.domain.mydept:app --port 8105`.
 3. Add its URL to `DOMAIN_AGENT_URLS` in `.env`.
 
-The Orchestrator discovers it from its Agent Card and the Concierge learns its skills automatically. No other code changes are needed.
+The Orchestrator discovers it from its Agent Card and the Concierge learns its skills automatically. The Concierge also creates a `<key>_officer` login and a `/dept/<key>` dashboard for it, and the department appears in the admin overview and the heatmap filter. No other code changes are needed.
 
-## 10. Project structure
+## 11. Project structure
 
 ```
 a2a-grievance/
@@ -231,24 +286,28 @@ a2a-grievance/
 │   ├── geocode.py        any place name -> coordinates (OpenStreetMap Nominatim, cached)
 │   └── localities.py     simulated Delhi geography + fuzzy locality matching
 ├── agents/
-│   ├── concierge/        HOST agent: nlu.py, core.py (dialogue), server.py, static/index.html
+│   ├── concierge/        HOST agent: nlu.py, core.py (dialogue), server.py, auth.py (login & roles),
+│   │                     static/ (classic UI: index = citizen, login, dept = department dashboard, admin)
 │   ├── orchestrator/     graph.py (LangGraph), server.py (A2A + audit trail)
 │   └── domain/           base.py (generic dept agent) + water, electricity, roads, sanitation
+├── frontend/             React + TypeScript website (iOS style); see frontend/README.md
 ├── adk_host/             Google ADK version of the host agent
 ├── data/                 evaluation datasets; db/ is created at runtime
 ├── docs/postman_collection.json
-├── tests/test_system.py
+├── tests/                test_system.py (A2A, NLU, routing), test_auth.py (login & roles)
 ├── evaluate.py           validation script (synopsis 4.6)
 └── run_all.py            starts every agent as its own process
 ```
 
-## 11. Troubleshooting
+## 12. Troubleshooting
 
 * **"Address already in use"**: an old run is still going. Close it, or change the ports in `.env` (`CONCIERGE_PORT=9000` and so on).
 * **Ollama mode keeps saying "fallback"**: make sure `ollama serve` is running and the model is pulled (`ollama list`).
 * **Gemini 429 error**: you hit the free-tier rate limit. Wait a minute. The rules engine fills in meanwhile.
-* **Start with a clean demo**: `python run_all.py --reset`.
+* **Start with a clean demo**: `python run_all.py --reset`. This also deletes `users.db`; the demo accounts are recreated on the next start.
+* **"Wrong username or password" for a demo account**: the accounts were created with the passwords that were in `.env` at the time. Delete `data/db/users.db` and restart.
+* **`sanitation_officer` cannot log in**: that account is only created once the Sanitation agent is running (`python run_all.py --with-sanitation`).
 
-## 12. Future scope (from the synopsis)
+## 13. Future scope (from the synopsis)
 
-Multilingual and voice intake, SLA-based automatic escalation (`tasks/get` polling already provides the hook), A2A push notifications instead of polling, OpenTelemetry export of the trail, citizen authentication, and integration with real departmental systems.
+Multilingual and voice intake, SLA-based automatic escalation (`tasks/get` polling already provides the hook), A2A push notifications instead of polling, OpenTelemetry export of the trail, production-grade authentication (HTTPS, OTP/DigiLocker-style identity, rate limiting, per-agent credentials or mTLS between agents), and integration with real departmental systems.

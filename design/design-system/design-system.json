@@ -1,0 +1,24 @@
+{
+  "v": 3,
+  "layout": "files",
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-11-21T10:00:00Z"
+  },
+  "title": "Nagrik Sahayak",
+  "namespace": "NagrikSahayak",
+  "libraries": [],
+  "sections": {},
+  "groups": [],
+  "assetGroups": {},
+  "blobs": {},
+  "docs": {
+    "sections": []
+  },
+  "lastChange": {
+    "by": "Claude",
+    "at": "2026-11-21T12:58:49Z",
+    "via": "Claude Code",
+    "note": "v2: monochrome Apple-inspired direction \u2014 new tokens, brand book, component previews and cover."
+  }
+}

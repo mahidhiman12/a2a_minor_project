@@ -1,0 +1,159 @@
+/* Nagrik Sahayak components v2 — monochrome, Apple-inspired. Every value is a token. */
+body { font-family: var(--font-sans); font-size: 17px; line-height: 1.47; letter-spacing: -0.022em; color: var(--ink); -webkit-font-smoothing: antialiased; }
+.ns-row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+.ns-stack { display: flex; flex-direction: column; gap: var(--space-3); }
+.ns-mono { font-family: var(--font-mono); font-size: 13px; letter-spacing: 0; }
+.ns-muted { color: var(--ink-secondary); }
+.ns-ico { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.ns-ico-sm { width: 14px; height: 14px; }
+
+/* Text styles */
+.ns-display { font-family: var(--font-display); font-size: 80px; line-height: 1.05; font-weight: 600; letter-spacing: -0.015em; margin: 0; }
+.ns-headline { font-family: var(--font-display); font-size: 56px; line-height: 1.07; font-weight: 600; letter-spacing: -0.005em; margin: 0; }
+.ns-title { font-family: var(--font-display); font-size: 40px; line-height: 1.1; font-weight: 600; letter-spacing: 0; margin: 0; }
+.ns-title2 { font-size: 28px; line-height: 1.14; font-weight: 600; letter-spacing: .007em; margin: 0; }
+.ns-title3 { font-size: 21px; line-height: 1.19; font-weight: 600; letter-spacing: .011em; margin: 0; }
+.ns-lead { font-size: 21px; line-height: 1.38; font-weight: 400; letter-spacing: .011em; color: var(--ink-secondary); margin: 0; }
+.ns-callout { font-size: 15px; line-height: 1.4; letter-spacing: -0.016em; }
+.ns-footnote { font-size: 13px; line-height: 1.38; letter-spacing: -0.01em; color: var(--ink-secondary); }
+.ns-caption { font-size: 12px; line-height: 1.33; letter-spacing: 0; color: var(--ink-secondary); }
+.ns-eyebrow { font-size: 17px; line-height: 1.24; font-weight: 600; letter-spacing: -0.022em; color: var(--ink-tertiary); }
+
+/* Buttons: pills */
+.ns-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 36px; padding: 0 18px; border-radius: var(--radius-full); border: 0; font: inherit; font-size: 15px; font-weight: 500; letter-spacing: -0.016em; cursor: pointer; text-decoration: none; white-space: nowrap; transition: background-color var(--duration-fast) var(--ease), transform var(--duration-fast) var(--ease), opacity var(--duration-fast); }
+.ns-btn:active { transform: scale(.97); }
+.ns-btn:focus-visible { outline: 3px solid color-mix(in srgb, var(--focus) 60%, transparent); outline-offset: 2px; }
+.ns-btn .ns-ico { width: 16px; height: 16px; }
+.ns-btn-primary { background: var(--primary); color: var(--on-primary); }
+.ns-btn-primary:hover { background: var(--primary-hover); }
+.ns-btn-secondary { background: var(--fill); color: var(--ink); }
+.ns-btn-secondary:hover { background: var(--fill-hover); }
+.ns-btn-plain { background: transparent; color: var(--ink); padding: 0 4px; }
+.ns-btn-plain:hover { opacity: .7; }
+.ns-btn-destructive { background: var(--fill); color: var(--red-ink); }
+.ns-btn-lg { height: 48px; padding: 0 26px; font-size: 17px; letter-spacing: -0.022em; }
+.ns-btn-sm { height: 28px; padding: 0 12px; font-size: 13px; letter-spacing: -0.01em; }
+.ns-btn[disabled] { opacity: .35; pointer-events: none; }
+.ns-link { color: var(--ink); text-decoration: none; display: inline-flex; align-items: center; gap: 2px; font-weight: 400; }
+.ns-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.ns-link .ns-ico { width: 15px; height: 15px; }
+
+/* Inputs */
+.ns-field { display: flex; flex-direction: column; gap: 8px; max-width: 380px; }
+.ns-field label { font-size: 13px; font-weight: 500; color: var(--ink-secondary); letter-spacing: -0.01em; }
+.ns-input { display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 16px; background: var(--bg-subtle); border: 1px solid transparent; border-radius: var(--radius-md); color: var(--ink-tertiary); transition: border-color var(--duration-fast), background var(--duration-fast), box-shadow var(--duration-fast); }
+.ns-input input { flex: 1; border: 0; outline: 0; background: transparent; font: inherit; font-size: 17px; color: var(--ink); min-width: 0; letter-spacing: -0.022em; }
+.ns-input input.ns-mono { font-family: var(--font-mono); font-size: 15px; letter-spacing: 0; }
+.ns-input input::placeholder { color: var(--ink-tertiary); }
+.ns-input:hover { background: var(--fill); }
+.ns-input:focus-within, .ns-input.is-focus { background: var(--surface); border-color: var(--focus); box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 22%, transparent); }
+.ns-input.is-error { background: var(--surface); border-color: var(--red); }
+.ns-input.pill { border-radius: var(--radius-full); }
+.ns-help { font-size: 13px; line-height: 1.38; color: var(--ink-secondary); }
+.ns-help.is-error { color: var(--red-ink); }
+
+/* Status: dot + word */
+.ns-status { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 500; letter-spacing: -0.01em; color: var(--ink); white-space: nowrap; }
+.ns-status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--sc, var(--ink-tertiary)); flex: none; }
+.ns-status.done { --sc: var(--green); } .ns-status.active { --sc: var(--blue); } .ns-status.pending { --sc: var(--orange); } .ns-status.error { --sc: var(--red); } .ns-status.idle { --sc: var(--ink-tertiary); color: var(--ink-secondary); }
+.ns-status.live::before { animation: ns-breathe 1.8s var(--ease) infinite; }
+.ns-badge { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: var(--radius-full); font-size: 12px; font-weight: 500; letter-spacing: 0; white-space: nowrap; background: var(--bg-subtle); color: var(--ink); }
+.ns-badge.done { background: var(--green-soft); color: var(--green-ink); } .ns-badge.active { background: var(--blue-soft); color: var(--blue-ink); }
+.ns-badge.pending { background: var(--orange-soft); color: var(--orange-ink); } .ns-badge.error { background: var(--red-soft); color: var(--red-ink); }
+.ns-live { width: 7px; height: 7px; border-radius: 50%; background: var(--blue); display: inline-block; flex: none; animation: ns-breathe 1.8s var(--ease) infinite; }
+.ns-live.ok { background: var(--green); animation: none; }
+@keyframes ns-breathe { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
+@media (prefers-reduced-motion: reduce) { .ns-live, .ns-status::before { animation: none !important; } * { transition: none !important; } }
+
+/* Priority */
+.ns-prio { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: var(--ink-secondary); letter-spacing: 0; }
+.ns-prio i { display: inline-flex; gap: 2px; align-items: flex-end; }
+.ns-prio i b { width: 3px; border-radius: 1px; background: var(--separator); }
+.ns-prio i b:nth-child(1) { height: 5px } .ns-prio i b:nth-child(2) { height: 7px } .ns-prio i b:nth-child(3) { height: 9px } .ns-prio i b:nth-child(4) { height: 11px }
+.ns-prio i b.on { background: var(--ink); }
+.ns-prio.critical { color: var(--red-ink); } .ns-prio.critical i b.on { background: var(--red); }
+
+/* Chips */
+.ns-chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px; border-radius: var(--radius-full); background: var(--bg-subtle); font-size: 13px; font-weight: 500; letter-spacing: -0.01em; color: var(--ink); white-space: nowrap; }
+.ns-chip .ns-ico { width: 14px; height: 14px; color: var(--ink-secondary); }
+.ns-chip .ns-mono { font-size: 11px; color: var(--ink-secondary); }
+.ns-chip.on { background: var(--primary); color: var(--on-primary); }
+.ns-chip.on .ns-ico, .ns-chip.on .ns-mono { color: inherit; opacity: .7; }
+
+/* Grouped list (Settings style) */
+.ns-list { background: var(--surface); border-radius: var(--radius-md); overflow: hidden; }
+.ns-list.inset { border: 1px solid var(--separator); }
+.ns-item { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; padding: 12px 16px; position: relative; }
+.ns-item + .ns-item::before { content: ""; position: absolute; top: 0; right: 0; left: 62px; height: 1px; background: var(--separator); }
+.ns-item .ic { width: 32px; height: 32px; border-radius: 8px; background: var(--bg-subtle); color: var(--ink); display: grid; place-items: center; }
+.ns-item .ic .ns-ico { width: 17px; height: 17px; }
+.ns-item .t { font-size: 15px; line-height: 1.33; letter-spacing: -0.016em; }
+.ns-item .m { font-size: 13px; line-height: 1.38; color: var(--ink-secondary); }
+.ns-item .r { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; color: var(--ink-tertiary); font-size: 12px; }
+
+/* Card: only for meaningful groups */
+.ns-card { background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--separator); padding: var(--space-6); }
+.ns-card.subtle { background: var(--bg-subtle); border-color: transparent; }
+
+/* Stat */
+.ns-stat { display: flex; flex-direction: column; gap: 6px; }
+.ns-stat .v { font-family: var(--font-display); font-size: 48px; line-height: 1.08; font-weight: 600; letter-spacing: -0.015em; font-variant-numeric: tabular-nums; }
+.ns-stat .k { font-size: 15px; line-height: 1.4; color: var(--ink-secondary); letter-spacing: -0.016em; }
+
+/* Sidebar (macOS source list) */
+.ns-side { width: 240px; background: var(--bg-subtle); padding: 14px 10px; display: flex; flex-direction: column; gap: 1px; border-radius: var(--radius-md); }
+.ns-side .grp { font-size: 11px; font-weight: 600; color: var(--ink-tertiary); padding: 14px 10px 6px; letter-spacing: .02em; }
+.ns-nav { display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 10px; border-radius: 7px; color: var(--ink); font-size: 13px; font-weight: 500; letter-spacing: -0.01em; text-decoration: none; }
+.ns-nav .ns-ico { width: 16px; height: 16px; color: var(--ink-secondary); }
+.ns-nav:hover { background: color-mix(in srgb, var(--fill) 60%, transparent); }
+.ns-nav.on { background: var(--fill); }
+.ns-nav.on .ns-ico { color: var(--ink); }
+.ns-nav .count { margin-left: auto; font-size: 12px; color: var(--ink-tertiary); font-variant-numeric: tabular-nums; }
+
+/* Segmented control */
+.ns-seg { display: inline-flex; background: var(--fill); border-radius: 9px; padding: 2px; }
+.ns-seg span { height: 28px; padding: 0 14px; display: grid; place-items: center; font-size: 13px; font-weight: 500; border-radius: 7px; color: var(--ink); }
+.ns-seg span.on { background: var(--surface); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+
+/* Chat */
+.ns-chat { display: flex; flex-direction: column; gap: 8px; }
+.ns-bubble { max-width: 80%; padding: 9px 14px; border-radius: 19px; font-size: 15px; line-height: 1.33; letter-spacing: -0.016em; }
+.ns-bubble.me { align-self: flex-end; background: var(--primary); color: var(--on-primary); border-bottom-right-radius: 6px; }
+.ns-bubble.them { align-self: flex-start; background: var(--bg-subtle); color: var(--ink); border-bottom-left-radius: 6px; }
+.ns-meta { font-size: 11px; color: var(--ink-tertiary); padding: 0 6px; }
+.ns-quick { display: flex; gap: 6px; flex-wrap: wrap; }
+.ns-quick span { height: 30px; padding: 0 12px; display: inline-flex; align-items: center; border-radius: var(--radius-full); border: 1px solid var(--separator); font-size: 13px; font-weight: 500; }
+
+/* Agent node */
+.ns-node { display: flex; align-items: center; gap: 10px; padding: 10px 14px 10px 10px; background: var(--surface); border: 1px solid var(--separator); border-radius: var(--radius-md); min-width: 0; }
+.ns-node .ic { width: 32px; height: 32px; border-radius: 8px; background: var(--bg-subtle); color: var(--ink); display: grid; place-items: center; flex: none; }
+.ns-node .ic .ns-ico { width: 17px; height: 17px; }
+.ns-node .t { font-size: 13px; font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; white-space: nowrap; }
+.ns-node .s { font-size: 11px; line-height: 1.3; color: var(--ink-secondary); font-family: var(--font-mono); letter-spacing: 0; white-space: nowrap; }
+.ns-node .dot { margin-left: auto; width: 7px; height: 7px; border-radius: 50%; background: var(--sc, var(--ink-tertiary)); flex: none; }
+.ns-node .dot.done { --sc: var(--green); } .ns-node .dot.active { --sc: var(--blue); animation: ns-breathe 1.8s var(--ease) infinite; } .ns-node .dot.error { --sc: var(--red); }
+.ns-node.idle { opacity: .45; }
+.ns-node.active { border-color: color-mix(in srgb, var(--blue) 45%, var(--separator)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 10%, transparent); }
+
+/* Timeline */
+.ns-tl { list-style: none; margin: 0; padding: 0; }
+.ns-tl li { position: relative; display: grid; grid-template-columns: 20px 1fr auto; gap: 14px; padding-bottom: 20px; }
+.ns-tl li::before { content: ""; position: absolute; left: 9.5px; top: 18px; bottom: -2px; width: 1px; background: var(--separator); }
+.ns-tl li:last-child::before { display: none; }
+.ns-tl .k { width: 20px; height: 20px; display: grid; place-items: center; }
+.ns-tl .k::after { content: ""; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--ink-tertiary); background: var(--surface); box-sizing: border-box; }
+.ns-tl .done .k::after { background: var(--green); border-color: var(--green); }
+.ns-tl .now .k::after { background: var(--blue); border-color: var(--blue); box-shadow: 0 0 0 4px var(--blue-soft); }
+.ns-tl .fail .k::after { background: var(--red); border-color: var(--red); }
+.ns-tl .h { font-size: 15px; font-weight: 500; line-height: 20px; letter-spacing: -0.016em; }
+.ns-tl .pending .h { color: var(--ink-secondary); }
+.ns-tl .b { font-size: 13px; line-height: 1.38; color: var(--ink-secondary); margin-top: 2px; }
+.ns-tl .ms { font-family: var(--font-mono); font-size: 12px; color: var(--ink-tertiary); padding-top: 1px; }
+.ns-code { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0; background: var(--bg-subtle); padding: 1px 6px; border-radius: 5px; color: var(--ink); }
+
+/* Skeleton */
+.ns-skel { background: linear-gradient(90deg, var(--bg-subtle) 0%, var(--fill) 50%, var(--bg-subtle) 100%); background-size: 200% 100%; animation: ns-shimmer 1.6s linear infinite; border-radius: 6px; }
+@keyframes ns-shimmer { to { background-position: -200% 0; } }
+
+/* Toast */
+.ns-toast { display: inline-flex; align-items: center; gap: 10px; padding: 12px 18px 12px 14px; border-radius: 14px; background: var(--glass); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); box-shadow: var(--shadow-lg); font-size: 15px; letter-spacing: -0.016em; }

@@ -1,6 +1,6 @@
 """
 Start all five agents, each as its own independent process (like separate
-department servers), then open http://127.0.0.1:8000 in your browser.
+department servers), then open http://127.0.0.1:8000/login in your browser.
 
     python run_all.py            # start everything
     python run_all.py --reset    # wipe the simulated databases first
@@ -57,9 +57,17 @@ def main():
             ok = wait_up(port)
             print(f"  {'OK ' if ok else 'ERR'} {name:<13} http://{config.HOST}:{port}")
         print(f"\nNLU mode: {config.NLU_MODE}")
-        print(f"Open the citizen app:  http://{config.HOST}:{config.PORTS['concierge']}")
-        print("Department consoles:   " + "  ".join(
-            f"http://{config.HOST}:{config.PORTS[k]}/console" for k in ("water", "electricity", "roads")))
+        base = f"http://{config.HOST}:{config.PORTS['concierge']}"
+        print(f"Log in here:           {base}/login")
+        print("  citizen -> citizen chat,  <department>_officer -> " + base + "/dept/<department>,"
+              "  admin -> " + base + "/admin")
+        print("  (demo passwords: README 'Login & roles' / your .env)")
+        if (config.ROOT / "frontend" / "dist" / "index.html").is_file():
+            print("Website: the React app from frontend/dist is served on " + base)
+        else:
+            print("Website not built yet - showing the classic pages. Build it with:\n"
+                  "  cd frontend && npm install && npm run build\n"
+                  "or develop with hot reload:  cd frontend && npm run dev  ->  http://localhost:5173")
         print("Press Ctrl+C to stop.\n")
         while all(p.poll() is None for p in procs):
             time.sleep(1)

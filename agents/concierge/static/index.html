@@ -83,7 +83,30 @@ td a{color:var(--brand);cursor:pointer;font-family:var(--mono);font-size:12px}
 #map{flex:1;min-height:340px;border:1px solid var(--line);border-radius:12px}
 .hot{display:grid;grid-template-columns:120px 1fr 34px;gap:8px;align-items:center;font-size:13px;padding:3px 0}
 .hot .bar{height:8px;border-radius:4px;background:linear-gradient(90deg,#f6ad55,#c53030)}
-@media (max-width:900px){main{grid-template-columns:1fr;grid-auto-rows:minmax(420px,auto)}body{height:auto}}
+/* signed-in user */
+.who{display:flex;align-items:center;gap:8px;font-size:13px}
+.who button{color:#fff;background:#fff1;border:1px solid #fff5;border-radius:8px;padding:6px 10px;font:inherit;font-size:13px;cursor:pointer}
+/* my complaints */
+.mc{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px;background:#fcfbf9}
+.mc h3{margin:0;font-size:14.5px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.mc h3 code{font-family:var(--mono);font-size:12.5px}
+.mc .sum{font-size:13px;color:var(--muted);margin-top:2px}
+.mc .tk{grid-template-columns:auto 1fr auto}
+.mc button{margin-top:8px;font:inherit;font-size:12.5px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 10px;cursor:pointer;color:var(--brand)}
+.tl{display:flex;list-style:none;padding:0;margin:12px 0 6px}
+.tl li{flex:1;position:relative;text-align:center;font-size:12px;color:var(--muted);padding-top:22px}
+.tl li::before{content:"";position:absolute;top:3px;left:50%;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid var(--line);z-index:1;box-sizing:border-box}
+.tl li::after{content:"";position:absolute;top:9px;left:-50%;width:100%;height:2px;background:var(--line)}
+.tl li:first-child::after{display:none}
+.tl li.done::before,.tl li.cur::before{background:var(--ok);border-color:var(--ok)}
+.tl li.done::after,.tl li.cur::after{background:var(--ok)}
+.tl li.cur{color:var(--ink);font-weight:650}
+.tl li.cur:not(:last-child)::before{background:var(--accent);border-color:var(--accent)}
+.tst{font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;background:#edf2f7;color:#4a5568;white-space:nowrap}
+.tst.IN_PROGRESS{background:#fefcbf;color:#975a16}.tst.RESOLVED,.tst.CLOSED{background:#c6f6d5;color:#22543d}
+@media (max-width:900px){main{grid-template-columns:1fr;grid-auto-rows:minmax(420px,auto)}body{height:auto}
+  header{flex-wrap:wrap;padding:12px 16px;gap:10px}header .sp{display:none}header h1{font-size:15.5px}
+  main{padding:12px}.tabs button{padding:10px 4px;font-size:12.5px}}
 </style>
 </head>
 <body>
@@ -98,6 +121,7 @@ td a{color:var(--brand);cursor:pointer;font-family:var(--mono);font-size:12px}
     <option value="ollama">Ollama (local LLM)</option>
     <option value="gemini">Gemini (free key)</option>
   </select></label>
+  <div class="who"><span id="me"></span><button id="logout" type="button">Log out</button></div>
 </header>
 <main>
   <section class="card">
@@ -110,7 +134,7 @@ td a{color:var(--brand);cursor:pointer;font-family:var(--mono);font-size:12px}
     <div class="tabs">
       <button data-t="flow" class="on">Live A2A trail</button>
       <button data-t="agents">Agent Cards</button>
-      <button data-t="list">All complaints</button>
+      <button data-t="list">My complaints</button>
       <button data-t="heat">Heatmap</button>
     </div>
     <div class="pane on" id="p-flow"><div class="empty">Submit a complaint to see agents discover each other, exchange JSON-RPC messages, and move tasks through <b>submitted → working → completed</b>.</div></div>
@@ -118,7 +142,7 @@ td a{color:var(--brand);cursor:pointer;font-family:var(--mono);font-size:12px}
     <div class="pane" id="p-list"></div>
     <div class="pane" id="p-heat">
       <div class="hctl">
-        <label>Department <select id="h-dept"><option value="">All</option><option>water</option><option>electricity</option><option>roads</option><option>sanitation</option></select></label>
+        <label>Department <select id="h-dept"><option value="">All</option></select></label>
         <label>Tickets <select id="h-open"><option value="">All</option><option value="open">Unresolved only</option></select></label>
         <span style="color:var(--muted);font-size:12px">Intensity = tickets weighted by priority (LOW 1 … CRITICAL 4)</span>
       </div>
@@ -129,6 +153,12 @@ td a{color:var(--brand);cursor:pointer;font-family:var(--mono);font-size:12px}
 </main>
 <script>
 const $=s=>document.querySelector(s);
+// Any API call that comes back 401 means the session expired: go to the login page.
+const _fetch=window.fetch.bind(window);
+window.fetch=async(...a)=>{const r=await _fetch(...a);if(r.status===401)location.replace('/login');return r;};
+fetch('api/me').then(r=>r.json()).then(u=>{$('#me').textContent=u.display_name||'';});
+$('#logout').onclick=async()=>{await _fetch('api/logout',{method:'POST'});location.replace('/login');};
+fetch('api/departments').then(r=>r.json()).then(ds=>ds.forEach(d=>$('#h-dept').insertAdjacentHTML('beforeend',`<option>${esc(d.key)}</option>`)));
 const SID='s-'+Math.random().toString(36).slice(2,9);
 const COLORS={water:'var(--water)',electricity:'var(--electricity)',roads:'var(--roads)',sanitation:'#2f855a'};
 const PORTS={8101:'Water',8102:'Electricity',8103:'Roads',8104:'Sanitation'};
@@ -209,15 +239,27 @@ async function loadTrail(cid){
 async function loadAgents(){
   const a=await (await fetch('api/agents')).json();
   $('#p-agents').innerHTML=`<p style="font-size:13px;color:var(--muted);margin-top:0">The Orchestrator knows only these URLs. Everything below was discovered from each agent's <code>/.well-known/agent-card.json</code>.</p>`+a.map(c=>`<div class="agent">
-    <h3><span>${c.name}</span>${c._offline?'<span class="st failed">offline</span>':`<a href="${c._base}/console" target="_blank">operator console ↗</a>`}</h3>
+    <h3><span>${c.name}</span>${c._offline?'<span class="st failed">offline</span>':'<span class="st completed">online</span>'}</h3>
     <div class="u">${c.url||c._base} · A2A ${c.protocolVersion||''} · ${c.preferredTransport||''}</div>
     <div style="font-size:13px;margin:6px 0">${c.description||''}</div>
     ${(c.skills||[]).map(s=>`<span class="skill" title="${s.description}">${s.id}</span>`).join('')}
     <div style="margin-top:6px"><a href="${c._base}/.well-known/agent-card.json" target="_blank">view raw Agent Card ↗</a></div></div>`).join('');
 }
+const STEPS=[['REGISTERED','Registered'],['IN_PROGRESS','In progress'],['RESOLVED','Resolved']];
 async function loadList(){
-  const l=await (await fetch('api/complaints')).json();
-  $('#p-list').innerHTML=l.length?`<table><tr><th>ID</th><th>Summary</th><th>Status</th></tr>${l.map(c=>`<tr><td><a onclick="openC('${c.complaint_id}')">${c.complaint_id}</a></td><td>${esc((c.summary||'').slice(0,70))}</td><td>${c.overall_status||''}${c.composite?' · multi-dept':''}</td></tr>`).join('')}</table>`:'<div class="empty">No complaints yet.</div>';
+  $('#p-list').innerHTML='<div class="empty">Getting the live status from each department agent…</div>';
+  const l=await (await fetch('api/my-complaints')).json();
+  $('#p-list').innerHTML=l.length?l.map(u=>{
+    const idx=STEPS.findIndex(s=>s[0]===u.overall_status);
+    return `<div class="mc"><h3><code>${esc(u.complaint_id)}</code><span class="prio ${esc(u.highest_priority)}">${esc(u.highest_priority||'')}</span></h3>
+      <div class="sum">${esc((u.summary||'').slice(0,110))} · ${esc(u.location)}${u.composite?' · multi-department':''}</div>
+      ${idx<0?`<div class="sum" style="color:var(--bad)">Not routed to a department (${esc(u.overall_status)})</div>`
+        :`<ol class="tl">${STEPS.map((s,i)=>`<li class="${i<idx?'done':i===idx?'cur':''}">${s[1]}</li>`).join('')}</ol>`}
+      ${(u.departments||[]).map(d=>`<div class="tk"><span class="dot" style="background:${COLORS[d.department]||'#999'}"></span>
+        <span><b>${esc(d.department_name||d.department)}</b> — ${esc(d.issue_name||d.issue_type||'')}<br><code style="font-family:var(--mono);font-size:12px">${esc(d.ticket_id||'—')}</code></span>
+        <span class="tst ${esc(d.ticket_status)}">${esc((d.ticket_status||d.a2a_task_state||'').replace('_',' '))}</span></div>`).join('')}
+      <button type="button" onclick="openC('${esc(u.complaint_id)}')">Show A2A trail</button></div>`}).join('')
+    :'<div class="empty">You have not filed any complaints yet. Describe a problem in the chat to file one.</div>';
 }
 // ---- complaint heatmap (Leaflet is loaded only when this tab is opened) ----
 const PRIO_W={LOW:1,MEDIUM:2,HIGH:3,CRITICAL:4};

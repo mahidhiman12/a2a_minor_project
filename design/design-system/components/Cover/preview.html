@@ -1,0 +1,39 @@
+<!-- @dsCard height=320 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8">
+<style>
+  html, body { margin: 0; padding: 0; background: var(--bg); }
+  .cv { position: relative; width: 960px; height: 320px; overflow: hidden; background: var(--bg); font-family: var(--font-display); }
+  .cv svg { position: absolute; left: 480px; top: 0; width: 480px; height: 320px; }
+  .ink { fill: var(--primary); }
+  .subtle { fill: var(--bg-subtle); }
+  .fillc { fill: var(--fill); }
+  .line { stroke: var(--separator); stroke-width: 1; fill: none; }
+  .g { fill: var(--green); } .b { fill: var(--blue); } .o { fill: var(--orange); } .r { fill: var(--red); }
+  .txt { position: absolute; left: 40px; bottom: 40px; max-width: 440px; }
+  .name { margin: 0; font-size: 100px; line-height: .95; font-weight: 600; letter-spacing: -0.02em; color: var(--ink); }
+  .tag { margin: 16px 0 0; font-family: var(--font-sans); font-size: 14px; line-height: 20px; color: var(--ink-secondary); }
+</style>
+</head>
+<body>
+<div class="cv">
+  <svg viewBox="0 0 480 320" aria-hidden="true">
+    <!-- blocks: bg-subtle panel 432×352 (radius-xl, bleeds top and bottom), primary (black) pill 208×64 (radius-full = 32), fill pill 144×64, white-on-subtle hairline rows.
+         arrangement: one tall quiet slab holding a stack of pills, like a grouped list seen from afar.
+         pattern: hairline rows (separator) — "whitespace over cards, one hairline instead of a box" — plus four 7px status dots, the only colour in the system.
+         scales: row pitch space-16 (64px), gaps space-4, radii radius-xl 28 and radius-full halves. -->
+    <rect class="subtle" x="48" y="-16" width="432" height="352" rx="28"/>
+    <path class="line" d="M96 104 H480 M96 168 H480 M96 232 H480"/>
+    <rect class="ink" x="96" y="56" width="208" height="64" rx="32" transform="translate(0,-16)"/>
+    <rect class="fillc" x="320" y="40" width="144" height="64" rx="32"/>
+    <circle class="g" cx="112" cy="136" r="7"/><circle class="b" cx="112" cy="200" r="7"/><circle class="o" cx="112" cy="264" r="7"/><circle class="r" cx="112" cy="328" r="7"/>
+    <rect class="fillc" x="136" y="130" width="168" height="12" rx="6"/><rect class="fillc" x="136" y="194" width="232" height="12" rx="6"/><rect class="fillc" x="136" y="258" width="128" height="12" rx="6"/>
+  </svg>
+  <div class="txt">
+    <h1 class="name">Nagrik<br>Sahayak</h1>
+    <p class="tag">One complaint. Every department that can fix it.</p>
+  </div>
+</div>
+</body>
+</html>
