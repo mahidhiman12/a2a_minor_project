@@ -62,10 +62,10 @@ def main():
         print("  citizen -> citizen chat,  <department>_officer -> " + base + "/dept/<department>,"
               "  admin -> " + base + "/admin")
         print("  (demo passwords: README 'Login & roles' / your .env)")
-        if (config.ROOT / "frontend" / "dist" / "index.html").is_file():
+        if (config.FRONTEND_DIST / "index.html").is_file():
             print("Website: the React app from frontend/dist is served on " + base)
         else:
-            print("Website not built yet - showing the classic pages. Build it with:\n"
+            print("Website not built yet - showing the classic pages. From the repo root, build it with:\n"
                   "  cd frontend && npm install && npm run build\n"
                   "or develop with hot reload:  cd frontend && npm run dev  ->  http://localhost:5173")
         print("Press Ctrl+C to stop.\n")

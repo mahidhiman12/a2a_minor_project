@@ -36,7 +36,7 @@ log = logging.getLogger("concierge")
 # The website is the React app in <repo>/frontend. `npm run build` puts it in frontend/dist and
 # this server hands out its index.html for every page route (the app routes in the browser).
 # Without a build, or with CONCIERGE_UI=classic, the original pages in ./static are used.
-SPA_DIST = config.ROOT / "frontend" / "dist"
+SPA_DIST = config.FRONTEND_DIST
 CLASSIC = Path(__file__).parent / "static"
 USE_SPA = os.getenv("CONCIERGE_UI", "app").lower() != "classic" and (SPA_DIST / "index.html").is_file()
 sessions: dict[str, Session] = {}

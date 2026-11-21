@@ -41,6 +41,8 @@ Cards        sub-tasks     (parallel)   tasks/get  unified status artifact
 
 ### Mapping the synopsis to the code
 
+The repository is a monorepo: the Python agents are in `backend/`, the website in `frontend/` and the design system in `design/`. Paths in this table are relative to `backend/`.
+
 | Synopsis section | Where it is implemented |
 |---|---|
 | 4.1 Agent Cards at a well-known endpoint | `common/a2a.py` → `GET /.well-known/agent-card.json` |
@@ -64,8 +66,8 @@ Cards        sub-tasks     (parallel)   tasks/get  unified status artifact
 You need **Python 3.10 or newer**. Check with `python --version`.
 
 ```bash
-# 1. go into the project folder
-cd a2a-grievance
+# 1. go into the backend folder of the project
+cd a2a_minor_project/backend
 
 # 2. (recommended) create a virtual environment
 python -m venv .venv
@@ -79,12 +81,16 @@ pip install -r requirements.txt
 copy .env.example .env          # Windows   (cp on macOS/Linux)
 ```
 
+The website (`frontend/`) needs Node.js 18+. See `frontend/README.md`; in short: `cd frontend && npm install && npm run build`.
+
 ## 3. Run it
+
+From `backend/`:
 
 ```bash
 python run_all.py --reset
 ```
-On Windows you can double-click `start_windows.bat` instead.
+Or, from the repo root, double-click `start_windows.bat` (Windows) or run `./start.sh`.
 
 Then open **http://127.0.0.1:8000/login** and sign in with one of the demo accounts in section 4.
 
@@ -128,7 +134,7 @@ Accounts are created on startup if they don't already exist. The passwords come 
 | `sanitation_officer` | officer · sanitation (only when the Sanitation agent runs) | `officer123` (`DEMO_OFFICER_PASSWORD`) |
 | `admin` | admin | `admin123` (`DEMO_ADMIN_PASSWORD`) |
 
-To give a single account its own password, set `DEMO_PASSWORD_<USERNAME>`, for example `DEMO_PASSWORD_WATER_OFFICER=...`. Passwords are read only when an account is first created. To change them later, delete `data/db/users.db` (or run `python run_all.py --reset`). New citizens can register themselves on the login page. Officer and admin accounts cannot self-register.
+To give a single account its own password, set `DEMO_PASSWORD_<USERNAME>`, for example `DEMO_PASSWORD_WATER_OFFICER=...`. Passwords are read only when an account is first created. To change them later, delete `backend/data/db/users.db` (or run `python run_all.py --reset`). New citizens can register themselves on the login page. Officer and admin accounts cannot self-register.
 
 ### Department logins come from the Agent Cards
 
@@ -174,8 +180,8 @@ If the LLM is down or returns bad JSON, the Concierge automatically **falls back
 * Ollama: set `NLU_MODE=ollama` and `OLLAMA_MODEL=qwen2.5:7b` (or `llama3.1:8b`). Very small models are poor at calling tools.
 
 ```bash
-python run_all.py            # terminal 1: start the agents
-cd adk_host                  # terminal 2
+python run_all.py            # terminal 1, in backend/: start the agents
+cd backend/adk_host          # terminal 2
 adk web --port 8080          # ADK dev UI at http://127.0.0.1:8080, choose "citizen_concierge"
 ```
 
@@ -253,7 +259,7 @@ The A2A protocol is implemented by hand in `common/a2a.py` (~300 lines) rather t
 
 *Be honest about this in your report.* The dev set was used while writing the rules, so 100% there is expected. The **held-out test set is the real result**. Its 3 misses show where rules-based NLU falls short: "very weak water pressure" (a phrasing the rules don't cover), Hinglish "taar toot ke gira" and an implied second department. These are exactly the cases an LLM handles better. Run `python evaluate.py --mode ollama` or `--mode gemini` to compare. The baseline models a conventional portal, where one complaint goes to one department. That kind of portal can never fully route a multi-department complaint.
 
-Unit and protocol tests: `python -m pytest -q` (7 tests: Agent Card fields, task lifecycle, rejection of unsupported skills, JSON-RPC error codes, NLU, aggregation).
+Unit and protocol tests, from `backend/`: `python -m pytest -q` (`tests/test_system.py`: Agent Card fields, task lifecycle, rejection of unsupported skills, JSON-RPC error codes, NLU, aggregation; `tests/test_auth.py`: login, roles, per-tab sign-in, ticket rules, officer actions).
 
 ---
 
@@ -261,7 +267,7 @@ Unit and protocol tests: `python -m pytest -q` (7 tests: Agent Card fields, task
 
 Citizens are not limited to the 20 built-in localities. Any place name ("Rajouri Garden", "kamla nagar me…") is looked up with **OpenStreetMap Nominatim** (free, no API key) in `common/geocode.py`:
 
-* results are limited to Delhi and cached in `data/db/geocode.db`, with at most 1 request per second as the Nominatim usage policy requires
+* results are limited to Delhi and cached in `backend/data/db/geocode.db`, with at most 1 request per second as the Nominatim usage policy requires
 * the department agent serves the place from its **nearest zone office** (e.g. Rajouri Garden → Janakpuri, 4.6 km) so a real crew is assigned
 * the heatmap (new *Heatmap* tab) plots the exact coordinates
 * if the place can't be found, the Concierge asks once for a nearby landmark; offline (or `GEOCODER=off`) it falls back to the built-in localities
@@ -279,33 +285,39 @@ The Orchestrator discovers it from its Agent Card and the Concierge learns its s
 ## 11. Project structure
 
 ```
-a2a-grievance/
-├── common/
-│   ├── a2a.py            A2A protocol: Agent Card, JSON-RPC server, TaskStore, client
-│   ├── config.py         ports, URLs, NLU mode (.env)
-│   ├── geocode.py        any place name -> coordinates (OpenStreetMap Nominatim, cached)
-│   └── localities.py     simulated Delhi geography + fuzzy locality matching
-├── agents/
-│   ├── concierge/        HOST agent: nlu.py, core.py (dialogue), server.py, auth.py (login & roles),
-│   │                     static/ (classic UI: index = citizen, login, dept = department dashboard, admin)
-│   ├── orchestrator/     graph.py (LangGraph), server.py (A2A + audit trail)
-│   └── domain/           base.py (generic dept agent) + water, electricity, roads, sanitation
-├── frontend/             React + TypeScript website (iOS style); see frontend/README.md
-├── adk_host/             Google ADK version of the host agent
-├── data/                 evaluation datasets; db/ is created at runtime
-├── docs/postman_collection.json
-├── tests/                test_system.py (A2A, NLU, routing), test_auth.py (login & roles)
-├── evaluate.py           validation script (synopsis 4.6)
-└── run_all.py            starts every agent as its own process
+a2a_minor_project/
+├── backend/                  Python: every agent, run with `python run_all.py`
+│   ├── common/
+│   │   ├── a2a.py            A2A protocol: Agent Card, JSON-RPC server, TaskStore, client
+│   │   ├── config.py         ports, URLs, NLU mode (.env)
+│   │   ├── geocode.py        any place name -> coordinates (OpenStreetMap Nominatim, cached)
+│   │   └── localities.py     simulated Delhi geography + fuzzy locality matching
+│   ├── agents/
+│   │   ├── concierge/        HOST agent: nlu.py, core.py (dialogue), server.py, auth.py (login & roles),
+│   │   │                     static/ (classic UI, used when the website isn't built)
+│   │   ├── orchestrator/     graph.py (LangGraph), server.py (A2A + audit trail)
+│   │   └── domain/           base.py (generic dept agent) + water, electricity, roads, sanitation
+│   ├── adk_host/             Google ADK version of the host agent
+│   ├── data/                 evaluation datasets; db/ is created at runtime
+│   ├── docs/postman_collection.json
+│   ├── tests/                test_system.py (A2A, NLU, routing), test_auth.py (login, roles, tickets)
+│   ├── evaluate.py           validation script (synopsis 4.6)
+│   ├── run_all.py            starts every agent as its own process
+│   ├── requirements.txt
+│   └── .env.example          copy to backend/.env
+├── frontend/                 React + TypeScript website; see frontend/README.md
+├── design/                   design system, wireframes, hand-off notes
+├── start_windows.bat         starts the backend (double-click)
+└── start.sh                  starts the backend (macOS / Linux)
 ```
 
 ## 12. Troubleshooting
 
-* **"Address already in use"**: an old run is still going. Close it, or change the ports in `.env` (`CONCIERGE_PORT=9000` and so on).
+* **"Address already in use"**: an old run is still going. Close it, or change the ports in `backend/.env` (`CONCIERGE_PORT=9000` and so on).
 * **Ollama mode keeps saying "fallback"**: make sure `ollama serve` is running and the model is pulled (`ollama list`).
 * **Gemini 429 error**: you hit the free-tier rate limit. Wait a minute. The rules engine fills in meanwhile.
 * **Start with a clean demo**: `python run_all.py --reset`. This also deletes `users.db`; the demo accounts are recreated on the next start.
-* **"Wrong username or password" for a demo account**: the accounts were created with the passwords that were in `.env` at the time. Delete `data/db/users.db` and restart.
+* **"Wrong username or password" for a demo account**: the accounts were created with the passwords that were in `.env` at the time. Delete `backend/data/db/users.db` and restart.
 * **`sanitation_officer` cannot log in**: that account is only created once the Sanitation agent is running (`python run_all.py --with-sanitation`).
 
 ## 13. Future scope (from the synopsis)

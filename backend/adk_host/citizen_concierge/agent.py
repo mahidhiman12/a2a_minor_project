@@ -9,15 +9,15 @@ calling - both options below are FREE:
   * Ollama, local     : set NLU_MODE=ollama and OLLAMA_MODEL=qwen2.5:7b (or llama3.1:8b)
                         small models like llama3.2:3b are weak at tool calling.
 
-Run (with the other agents already started by `python run_all.py`):
-    cd adk_host
+Run (with the other agents already started by `python run_all.py` in backend/):
+    cd backend/adk_host
     adk web          # opens the ADK dev UI at http://127.0.0.1:8000 -> use --port 8080
     # or:  adk run citizen_concierge
 """
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # project root
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # backend/ (where agents/ and common/ live)
 
 from google.adk.agents import Agent  # noqa: E402
 

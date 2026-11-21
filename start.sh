@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
-cd "$(dirname "$0")"
+# Starts every backend agent (run from anywhere): ./start.sh [--reset] [--with-sanitation]
+cd "$(dirname "$0")/backend"
 python3 run_all.py "$@"

@@ -1,17 +1,20 @@
 """Central configuration. Every value can be overridden with an environment variable
-(or a .env file in the project root)."""
+(or a .env file in the backend folder)."""
 import os
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent   # backend/
+REPO_ROOT = ROOT.parent                          # the monorepo: backend/, frontend/, design/
+FRONTEND_DIST = REPO_ROOT / "frontend" / "dist"  # the built React app the Concierge serves
 DATA_DIR = ROOT / "data"
 DB_DIR = Path(os.getenv("DB_DIR", DATA_DIR / "db"))
 DB_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def _load_dotenv():
-    env = ROOT / ".env"
-    if env.exists():
+    # backend/.env; a .env left in the repo root (the old layout) still works
+    env = next((p for p in (ROOT / ".env", REPO_ROOT / ".env") if p.exists()), None)
+    if env:
         for line in env.read_text().splitlines():
             line = line.strip()
             if line and not line.startswith("#") and "=" in line:

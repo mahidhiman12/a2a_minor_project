@@ -10,7 +10,8 @@ You need Node.js 18+ and the Python backend set up as in the main README.
 ### Development (hot reload)
 
 ```bash
-# terminal 1 - backend: all agents, Concierge API on :8000
+# terminal 1 - backend: all agents, Concierge API on :8000 (from the repo root)
+cd backend
 python run_all.py
 
 # terminal 2 - website on http://localhost:5173
@@ -28,7 +29,7 @@ and change `VITE_BACKEND_URL`.
 ```bash
 cd frontend
 npm run build      # type-checks, then writes frontend/dist
-cd ..
+cd ../backend
 python run_all.py  # the Concierge now serves the website on http://127.0.0.1:8000
 ```
 
